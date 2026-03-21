@@ -9,6 +9,7 @@ export const rateLimiter = rateLimit({
   },
   standardHeaders: true,
   legacyHeaders: false,
+    validate: { xForwardedForHeader: false },
   skip: (req) => {
     // Skip rate limiting for health check
     return req.path === '/health';
@@ -16,12 +17,13 @@ export const rateLimiter = rateLimit({
 });
 
 export const strictRateLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
+  windowMs: 15 * 60 * 100000, // 15 minutes
   max: 10000,
   message: {
     status: 'error',
     message: 'Too many attempts, please try again later.'
   },
   standardHeaders: true,
-  legacyHeaders: false
+  legacyHeaders: false,
+    validate: { xForwardedForHeader: false },
 });
