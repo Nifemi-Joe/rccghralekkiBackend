@@ -18,8 +18,9 @@ export interface SmsContactList {
     name: string;
     description?: string;
     contact_count: number;
-    created_at: string;
-    updated_at: string;
+    created_by?: string;
+    created_at: Date;
+    updated_at: Date;
 }
 
 export interface SmsContactListItem {
@@ -27,8 +28,8 @@ export interface SmsContactListItem {
     list_id: string;
     phone_number: string;
     name?: string;
-    custom_fields?: any;
-    created_at: string;
+    custom_fields?: Record<string, any>;
+    created_at: Date;
 }
 
 export interface SmsBalance {
@@ -112,26 +113,6 @@ export interface SmsReply {
     message: string;
     is_read: boolean;
     received_at: Date;
-    created_at: Date;
-}
-
-export interface SmsContactList {
-    id: string;
-    church_id: string;
-    name: string;
-    description?: string;
-    contact_count: number;
-    created_by?: string;
-    created_at: Date;
-    updated_at: Date;
-}
-
-export interface SmsContactListItem {
-    id: string;
-    list_id: string;
-    phone_number: string;
-    name?: string;
-    custom_fields?: Record<string, any>;
     created_at: Date;
 }
 

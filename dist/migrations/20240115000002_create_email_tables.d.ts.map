@@ -1,0 +1,1 @@
+{"version":3,"file":"20240115000002_create_email_tables.d.ts","sourceRoot":"","sources":["../../src/migrations/20240115000002_create_email_tables.ts"],"names":[],"mappings":"AACA,OAAO,EAAE,IAAI,EAAE,MAAM,MAAM,CAAC;AAE5B,wBAAsB,EAAE,CAAC,IAAI,EAAE,IAAI,GAAG,OAAO,CAAC,IAAI,CAAC,CAwGlD;AAED,wBAAsB,IAAI,CAAC,IAAI,EAAE,IAAI,GAAG,OAAO,CAAC,IAAI,CAAC,CAOpD"}

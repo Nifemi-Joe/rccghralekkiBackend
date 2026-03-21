@@ -215,7 +215,7 @@ export class EmailService {
                     page: 1,
                     limit: 10000,
                 });
-                members.data.forEach((m: any) => {
+                members.members.forEach((m: any) => {
                     if (m.email) {
                         recipients.push({
                             email: m.email,

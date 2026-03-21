@@ -1,12 +1,14 @@
-// scripts/seed.js
-const { Pool } = require('pg');
-require('dotenv').config();
+// src/scripts/seed.ts
+import { Pool } from 'pg';
+import * as dotenv from 'dotenv';
+
+dotenv.config();
 
 const pool = new Pool({
     connectionString: process.env.DATABASE_URL,
 });
 
-async function seedPricing() {
+async function seedPricing(): Promise<void> {
     console.log('Seeding default pricing...');
 
     const pricing = [
@@ -44,37 +46,38 @@ async function seedPricing() {
             );
             console.log(`✓ Seeded pricing: ${p.channel} - ${p.code}`);
         } catch (error) {
-            console.error(`✗ Failed to seed ${p.channel} - ${p.code}:`, error.message);
+            const message = error instanceof Error ? error.message : String(error);
+            console.error(`✗ Failed to seed ${p.channel} - ${p.code}:`, message);
         }
     }
 }
 
-async function seedPackages() {
+async function seedPackages(): Promise<void> {
     console.log('Seeding default packages...');
 
     const packages = [
         // SMS Packages
-        { name: 'SMS Starter', channel: 'sms', units: 100, price: 350, bonus: 0, discount: 0, popular: false, order: 1 },
-        { name: 'SMS Basic', channel: 'sms', units: 500, price: 1500, bonus: 50, discount: 5, popular: false, order: 2 },
-        { name: 'SMS Professional', channel: 'sms', units: 1000, price: 2800, bonus: 150, discount: 10, popular: true, order: 3 },
-        { name: 'SMS Enterprise', channel: 'sms', units: 5000, price: 12000, bonus: 1000, discount: 15, popular: false, order: 4 },
+        { name: 'SMS Starter', channel: 'sms', units: 100, price: 350, bonus: 0, discount: 0, popular: false, order: 1, description: null },
+        { name: 'SMS Basic', channel: 'sms', units: 500, price: 1500, bonus: 50, discount: 5, popular: false, order: 2, description: null },
+        { name: 'SMS Professional', channel: 'sms', units: 1000, price: 2800, bonus: 150, discount: 10, popular: true, order: 3, description: null },
+        { name: 'SMS Enterprise', channel: 'sms', units: 5000, price: 12000, bonus: 1000, discount: 15, popular: false, order: 4, description: null },
 
         // Email Packages
-        { name: 'Email Starter', channel: 'email', units: 500, price: 500, bonus: 0, discount: 0, popular: false, order: 1 },
-        { name: 'Email Basic', channel: 'email', units: 2000, price: 1800, bonus: 200, discount: 5, popular: false, order: 2 },
-        { name: 'Email Professional', channel: 'email', units: 5000, price: 4000, bonus: 750, discount: 10, popular: true, order: 3 },
-        { name: 'Email Enterprise', channel: 'email', units: 20000, price: 14000, bonus: 5000, discount: 15, popular: false, order: 4 },
+        { name: 'Email Starter', channel: 'email', units: 500, price: 500, bonus: 0, discount: 0, popular: false, order: 1, description: null },
+        { name: 'Email Basic', channel: 'email', units: 2000, price: 1800, bonus: 200, discount: 5, popular: false, order: 2, description: null },
+        { name: 'Email Professional', channel: 'email', units: 5000, price: 4000, bonus: 750, discount: 10, popular: true, order: 3, description: null },
+        { name: 'Email Enterprise', channel: 'email', units: 20000, price: 14000, bonus: 5000, discount: 15, popular: false, order: 4, description: null },
 
         // WhatsApp Packages
-        { name: 'WhatsApp Starter', channel: 'whatsapp', units: 50, price: 375, bonus: 0, discount: 0, popular: false, order: 1 },
-        { name: 'WhatsApp Basic', channel: 'whatsapp', units: 200, price: 1400, bonus: 20, discount: 5, popular: false, order: 2 },
-        { name: 'WhatsApp Professional', channel: 'whatsapp', units: 500, price: 3200, bonus: 75, discount: 10, popular: true, order: 3 },
-        { name: 'WhatsApp Enterprise', channel: 'whatsapp', units: 2000, price: 11500, bonus: 500, discount: 15, popular: false, order: 4 },
+        { name: 'WhatsApp Starter', channel: 'whatsapp', units: 50, price: 375, bonus: 0, discount: 0, popular: false, order: 1, description: null },
+        { name: 'WhatsApp Basic', channel: 'whatsapp', units: 200, price: 1400, bonus: 20, discount: 5, popular: false, order: 2, description: null },
+        { name: 'WhatsApp Professional', channel: 'whatsapp', units: 500, price: 3200, bonus: 75, discount: 10, popular: true, order: 3, description: null },
+        { name: 'WhatsApp Enterprise', channel: 'whatsapp', units: 2000, price: 11500, bonus: 500, discount: 15, popular: false, order: 4, description: null },
 
         // Voice Packages
-        { name: 'Voice Starter', channel: 'voice', units: 25, price: 550, bonus: 0, discount: 0, popular: false, order: 1 },
-        { name: 'Voice Basic', channel: 'voice', units: 100, price: 2000, bonus: 10, discount: 5, popular: false, order: 2 },
-        { name: 'Voice Professional', channel: 'voice', units: 250, price: 4800, bonus: 35, discount: 10, popular: true, order: 3 },
+        { name: 'Voice Starter', channel: 'voice', units: 25, price: 550, bonus: 0, discount: 0, popular: false, order: 1, description: null },
+        { name: 'Voice Basic', channel: 'voice', units: 100, price: 2000, bonus: 10, discount: 5, popular: false, order: 2, description: null },
+        { name: 'Voice Professional', channel: 'voice', units: 250, price: 4800, bonus: 35, discount: 10, popular: true, order: 3, description: null },
 
         // Combo Packages
         { name: 'Starter Combo', channel: 'combo', units: 150, price: 800, bonus: 0, discount: 0, popular: false, order: 1, description: '100 SMS + 50 Emails' },
@@ -86,23 +89,25 @@ async function seedPackages() {
         try {
             await pool.query(
                 `INSERT INTO unit_packages (name, channel, units, price, bonus_units, discount_percent, is_popular, sort_order, description)
-                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
-                [pkg.name, pkg.channel, pkg.units, pkg.price, pkg.bonus, pkg.discount, pkg.popular, pkg.order, pkg.description || null]
+                 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+                [pkg.name, pkg.channel, pkg.units, pkg.price, pkg.bonus, pkg.discount, pkg.popular, pkg.order, pkg.description]
             );
             console.log(`✓ Seeded package: ${pkg.name}`);
         } catch (error) {
-            console.error(`✗ Failed to seed ${pkg.name}:`, error.message);
+            const message = error instanceof Error ? error.message : String(error);
+            console.error(`✗ Failed to seed ${pkg.name}:`, message);
         }
     }
 }
 
-async function seed() {
+async function seed(): Promise<void> {
     try {
         await seedPricing();
         await seedPackages();
         console.log('All seeding completed successfully!');
     } catch (error) {
-        console.error('Seeding failed:', error);
+        const message = error instanceof Error ? error.message : String(error);
+        console.error('Seeding failed:', message);
         throw error;
     } finally {
         await pool.end();
@@ -110,6 +115,7 @@ async function seed() {
 }
 
 seed().catch((error) => {
-    console.error('Seed script failed:', error);
+    const message = error instanceof Error ? error.message : String(error);
+    console.error('Seed script failed:', message);
     process.exit(1);
 });

@@ -455,9 +455,9 @@ let termiiClient: TermiiClient | null = null;
 export const getTermii = (): TermiiClient => {
     if (!termiiClient) {
         const config: TermiiConfig = {
-            apiKey: process.env.TERMII_API_KEY,
-            baseUrl: process.env.TERMII_BASE_URL,
-            senderId: process.env.TERMII_SENDER_ID,
+            apiKey: process.env.TERMII_API_KEY || 'termii',
+            baseUrl: process.env.TERMII_BASE_URL || 'https://v3.api.termii.com/api',
+            senderId: process.env.TERMII_SENDER_ID || 'CHURCHMS',
         };
 
         if (!config.apiKey) {
