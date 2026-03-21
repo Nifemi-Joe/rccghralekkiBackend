@@ -20,7 +20,7 @@ const API_VERSION = process.env.API_VERSION || 'v1';
 // Security middleware
 app.use(helmet());
 app.use(cors({
-  origin: process.env.ALLOWED_ORIGINS?.split(',') || '*',
+  origin: "https://app.rccghralekki.com",
   credentials: true
 }));
 
