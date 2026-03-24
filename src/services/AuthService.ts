@@ -1,30 +1,4 @@
 import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken';
-import crypto from 'crypto';
-import { UserRepository } from '@repositories/UserRepository';
-import { ChurchRepository } from '@repositories/ChurchRepository';
-import { AppError } from '@utils/AppError';
-import { RegisterDTO } from '@/dtos/auth.types';
-import logger from '@config/logger';
-import type { SignOptions } from 'jsonwebtoken';
-
-// OTP Storage for password reset
-interface ResetOTPData {
-    otp: string;
-    email: string;
-    userId: string;
-    expiresAt: Date;
-    attempts: number;
-}
-
-// Reset Token Storage
-interface ResetTokenData {
-    email: string;
-    userId: string;
-    expiresAt: Date;
-}
-
-import bcrypt from 'bcryptjs';
 import jwt, { SignOptions } from 'jsonwebtoken';
 import crypto from 'crypto';
 import { UserRepository } from '@repositories/UserRepository';
