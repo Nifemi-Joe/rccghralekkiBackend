@@ -4,25 +4,42 @@ export declare class AuthService {
     private churchRepository;
     private resetOTPStore;
     private resetTokenStore;
+    private verificationOTPStore;
     constructor();
-    /**
-     * Step 1: Send OTP for password reset
-     */
     forgotPassword(email: string): Promise<{
         message: string;
     }>;
-    /**
-     * Step 2: Verify Reset OTP
-     */
     verifyResetOTP(email: string, otp: string): Promise<{
         resetToken: string;
         email: string;
         message: string;
     }>;
-    /**
-     * Step 3: Reset Password with Token
-     */
     resetPassword(resetToken: string, newPassword: string): Promise<{
+        message: string;
+    }>;
+    resendResetOTP(email: string): Promise<{
+        message: string;
+    }>;
+    /**
+     * Send initial email verification OTP
+     * Call this right after church registration
+     */
+    sendVerificationOTP(email: string, userId: string): Promise<{
+        message: string;
+    }>;
+    /**
+     * Verify email OTP
+     */
+    verifyEmail(otp: string, email?: string, token?: string): Promise<{
+        message: string;
+    }>;
+    private verifyEmailByOTP;
+    private verifyEmailByToken;
+    /**
+     * Resend email verification OTP
+     * This is what gets called when user clicks "Resend OTP"
+     */
+    resendVerificationEmail(email: string): Promise<{
         message: string;
     }>;
     register(data: RegisterDTO): Promise<{
@@ -83,6 +100,7 @@ export declare class AuthService {
             name: string;
             email: string | null;
             slug: string;
+            currency: string;
             setupStatus: "active";
             adminSetupSkipped: boolean;
         };
@@ -132,10 +150,7 @@ export declare class AuthService {
             adminSetupSkipped: boolean;
         } | null;
     }>;
-    verifyEmail(token: string): Promise<{
-        message: string;
-    }>;
-    resendVerificationEmail(email: string): Promise<{
+    changePassword(userId: string, currentPassword: string, newPassword: string): Promise<{
         message: string;
     }>;
     private validatePasswordStrength;

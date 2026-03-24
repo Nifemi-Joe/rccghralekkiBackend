@@ -8,11 +8,12 @@ const pg_1 = require("pg");
 const dotenv_1 = __importDefault(require("dotenv"));
 const logger_1 = __importDefault(require("./logger"));
 dotenv_1.default.config();
+const isProduction = process.env.NODE_ENV === 'production';
 exports.pool = new pg_1.Pool({
     connectionString: process.env.DATABASE_URL,
-    ssl: {
-        rejectUnauthorized: false
-    },
+    ssl: isProduction
+        ? { rejectUnauthorized: false } // Neon requires SSL in production
+        : false, // Local postgres doesn't need SSL
     max: 20,
     idleTimeoutMillis: 30000,
     connectionTimeoutMillis: 2000,

@@ -11,42 +11,43 @@ const UserRepository_1 = require("@repositories/UserRepository");
 const ChurchRepository_1 = require("@repositories/ChurchRepository");
 const AppError_1 = require("@utils/AppError");
 const logger_1 = __importDefault(require("@config/logger"));
+// ============================================================================
+// AUTH SERVICE
+// ============================================================================
 class AuthService {
     constructor() {
         // In-memory stores (use Redis in production)
         this.resetOTPStore = new Map();
         this.resetTokenStore = new Map();
+        this.verificationOTPStore = new Map();
         this.userRepository = new UserRepository_1.UserRepository();
         this.churchRepository = new ChurchRepository_1.ChurchRepository();
-        // Cleanup expired OTPs periodically
-        setInterval(() => this.cleanupExpiredData(), 5 * 60 * 1000); // Every 5 minutes
+        // Cleanup expired OTPs every 5 minutes
+        setInterval(() => this.cleanupExpiredData(), 5 * 60 * 1000);
     }
     // ============================================================================
     // FORGOT PASSWORD FLOW
     // ============================================================================
-    /**
-     * Step 1: Send OTP for password reset
-     */
     async forgotPassword(email) {
         try {
             const normalizedEmail = email.toLowerCase().trim();
-            // Check if user exists
             const user = await this.userRepository.findByEmail(normalizedEmail);
             if (!user) {
-                // Don't reveal if user exists - return silently
                 logger_1.default.info(`Password reset requested for non-existent email: ${normalizedEmail}`);
                 return { message: 'If an account exists, a verification code has been sent.' };
             }
-            // Check if user account is active
             if (user.status !== 'active') {
                 logger_1.default.warn(`Password reset requested for inactive account: ${normalizedEmail}`);
                 return { message: 'If an account exists, a verification code has been sent.' };
             }
-            // Generate 6-digit OTP
             const otp = crypto_1.default.randomInt(100000, 999999).toString();
             const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
-            console.log("your otp is: ", otp);
-            // Store OTP
+            console.log(`\n========================================`);
+            console.log(`🔑 PASSWORD RESET OTP`);
+            console.log(`Email: ${normalizedEmail}`);
+            console.log(`OTP: ${otp}`);
+            console.log(`Expires: ${expiresAt.toISOString()}`);
+            console.log(`========================================\n`);
             this.resetOTPStore.set(normalizedEmail, {
                 otp,
                 email: normalizedEmail,
@@ -54,9 +55,6 @@ class AuthService {
                 expiresAt,
                 attempts: 0
             });
-            // TODO: Send OTP via email service
-            // await this.emailService.sendPasswordResetOTP(normalizedEmail, otp, user.first_name);
-            // For development - log OTP
             logger_1.default.info(`Password reset OTP for ${normalizedEmail}: ${otp}`);
             return { message: 'Verification code sent to your email.' };
         }
@@ -65,9 +63,6 @@ class AuthService {
             throw error;
         }
     }
-    /**
-     * Step 2: Verify Reset OTP
-     */
     async verifyResetOTP(email, otp) {
         try {
             const normalizedEmail = email.toLowerCase().trim();
@@ -75,33 +70,27 @@ class AuthService {
             if (!stored) {
                 throw new AppError_1.AppError('No reset request found. Please request a new code.', 400);
             }
-            // Check expiration
             if (new Date() > stored.expiresAt) {
                 this.resetOTPStore.delete(normalizedEmail);
                 throw new AppError_1.AppError('Verification code has expired. Please request a new one.', 400);
             }
-            // Check attempts (max 5)
             if (stored.attempts >= 5) {
                 this.resetOTPStore.delete(normalizedEmail);
                 throw new AppError_1.AppError('Too many failed attempts. Please request a new code.', 429);
             }
-            // Verify OTP
             if (stored.otp !== otp) {
                 stored.attempts += 1;
                 this.resetOTPStore.set(normalizedEmail, stored);
                 const remainingAttempts = 5 - stored.attempts;
                 throw new AppError_1.AppError(`Invalid code. ${remainingAttempts} attempts remaining.`, 400);
             }
-            // OTP is valid - generate reset token
             const resetToken = crypto_1.default.randomBytes(32).toString('hex');
             const tokenExpiry = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
-            // Store reset token
             this.resetTokenStore.set(resetToken, {
                 email: normalizedEmail,
                 userId: stored.userId,
                 expiresAt: tokenExpiry
             });
-            // Clean up OTP
             this.resetOTPStore.delete(normalizedEmail);
             logger_1.default.info(`Reset OTP verified for ${normalizedEmail}`);
             return {
@@ -115,41 +104,29 @@ class AuthService {
             throw error;
         }
     }
-    /**
-     * Step 3: Reset Password with Token
-     */
     async resetPassword(resetToken, newPassword) {
         try {
             const tokenData = this.resetTokenStore.get(resetToken);
             if (!tokenData) {
                 throw new AppError_1.AppError('Invalid or expired reset link. Please request a new one.', 400);
             }
-            // Check token expiration
             if (new Date() > tokenData.expiresAt) {
                 this.resetTokenStore.delete(resetToken);
                 throw new AppError_1.AppError('Reset link has expired. Please request a new one.', 400);
             }
-            // Validate password strength
             this.validatePasswordStrength(newPassword);
-            // Get user
             const user = await this.userRepository.findById(tokenData.userId);
             if (!user) {
                 throw new AppError_1.AppError('User not found', 404);
             }
-            // Check if new password is same as old
             const isSamePassword = await bcryptjs_1.default.compare(newPassword, user.password_hash);
             if (isSamePassword) {
                 throw new AppError_1.AppError('New password must be different from your current password.', 400);
             }
-            // Hash new password
             const hashedPassword = await bcryptjs_1.default.hash(newPassword, 12);
-            // Update password
             await this.userRepository.updatePassword(tokenData.userId, hashedPassword);
-            // Clean up token
             this.resetTokenStore.delete(resetToken);
             logger_1.default.info(`Password reset successful for user: ${tokenData.userId}`);
-            // TODO: Send confirmation email
-            // await this.emailService.sendPasswordChangeConfirmation(tokenData.email);
             return { message: 'Password reset successful. You can now login with your new password.' };
         }
         catch (error) {
@@ -157,8 +134,195 @@ class AuthService {
             throw error;
         }
     }
+    async resendResetOTP(email) {
+        try {
+            const normalizedEmail = email.toLowerCase().trim();
+            const otp = crypto_1.default.randomInt(100000, 999999).toString();
+            const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
+            const existing = this.resetOTPStore.get(normalizedEmail);
+            if (existing) {
+                // Rate limit resends — 1 per minute
+                const timeSinceCreated = Date.now() - (existing.expiresAt.getTime() - 10 * 60 * 1000);
+                if (timeSinceCreated < 60 * 1000) {
+                    throw new AppError_1.AppError('Please wait 1 minute before requesting a new code.', 429);
+                }
+            }
+            const user = await this.userRepository.findByEmail(normalizedEmail);
+            if (!user) {
+                return { message: 'If an account exists, a new code has been sent.' };
+            }
+            console.log(`\n========================================`);
+            console.log(`🔄 RESEND PASSWORD RESET OTP`);
+            console.log(`Email: ${normalizedEmail}`);
+            console.log(`OTP: ${otp}`);
+            console.log(`Expires: ${expiresAt.toISOString()}`);
+            console.log(`========================================\n`);
+            this.resetOTPStore.set(normalizedEmail, {
+                otp,
+                email: normalizedEmail,
+                userId: user.id,
+                expiresAt,
+                attempts: 0
+            });
+            logger_1.default.info(`Password reset OTP resent for ${normalizedEmail}: ${otp}`);
+            return { message: 'A new verification code has been sent.' };
+        }
+        catch (error) {
+            logger_1.default.error('Error in resendResetOTP:', error);
+            throw error;
+        }
+    }
     // ============================================================================
-    // EXISTING METHODS
+    // EMAIL VERIFICATION FLOW
+    // ============================================================================
+    /**
+     * Send initial email verification OTP
+     * Call this right after church registration
+     */
+    async sendVerificationOTP(email, userId) {
+        try {
+            const normalizedEmail = email.toLowerCase().trim();
+            const otp = crypto_1.default.randomInt(100000, 999999).toString();
+            const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+            this.verificationOTPStore.set(normalizedEmail, {
+                otp,
+                email: normalizedEmail,
+                userId,
+                expiresAt,
+                attempts: 0,
+                resendCount: 0,
+                lastResendAt: new Date()
+            });
+            console.log(`\n========================================`);
+            console.log(`📧 EMAIL VERIFICATION OTP`);
+            console.log(`Email: ${normalizedEmail}`);
+            console.log(`OTP: ${otp}`);
+            console.log(`Expires: ${expiresAt.toISOString()}`);
+            console.log(`========================================\n`);
+            logger_1.default.info(`Email verification OTP sent to ${normalizedEmail}: ${otp}`);
+            // TODO: Replace with real email sending
+            // await this.emailService.sendVerificationOTP(normalizedEmail, otp, firstName);
+            return { message: 'Verification code sent to your email.' };
+        }
+        catch (error) {
+            logger_1.default.error('Error in sendVerificationOTP:', error);
+            throw error;
+        }
+    }
+    /**
+     * Verify email OTP
+     */
+    async verifyEmail(otp, email, token) {
+        try {
+            // Support both email+OTP and token-based verification
+            if (email && otp) {
+                return await this.verifyEmailByOTP(email, otp);
+            }
+            if (token) {
+                return await this.verifyEmailByToken(token);
+            }
+            throw new AppError_1.AppError('Email and OTP or verification token required', 400);
+        }
+        catch (error) {
+            logger_1.default.error('Error in verifyEmail:', error);
+            throw error;
+        }
+    }
+    async verifyEmailByOTP(email, otp) {
+        const normalizedEmail = email.toLowerCase().trim();
+        const stored = this.verificationOTPStore.get(normalizedEmail);
+        if (!stored) {
+            throw new AppError_1.AppError('No verification request found. Please request a new code.', 400);
+        }
+        if (new Date() > stored.expiresAt) {
+            this.verificationOTPStore.delete(normalizedEmail);
+            throw new AppError_1.AppError('Verification code has expired. Please request a new one.', 400);
+        }
+        if (stored.attempts >= 5) {
+            this.verificationOTPStore.delete(normalizedEmail);
+            throw new AppError_1.AppError('Too many failed attempts. Please request a new code.', 429);
+        }
+        if (stored.otp !== otp) {
+            stored.attempts += 1;
+            this.verificationOTPStore.set(normalizedEmail, stored);
+            const remainingAttempts = 5 - stored.attempts;
+            throw new AppError_1.AppError(`Invalid code. ${remainingAttempts} attempts remaining.`, 400);
+        }
+        // Mark user as email verified
+        await this.userRepository.update(stored.userId, { emailVerified: true });
+        this.verificationOTPStore.delete(normalizedEmail);
+        logger_1.default.info(`Email verified successfully for: ${normalizedEmail}`);
+        return { message: 'Email verified successfully.' };
+    }
+    async verifyEmailByToken(token) {
+        // Placeholder for token-based verification if needed later
+        logger_1.default.info(`Token-based email verification attempted`);
+        return { message: 'Email verified successfully.' };
+    }
+    /**
+     * Resend email verification OTP
+     * This is what gets called when user clicks "Resend OTP"
+     */
+    async resendVerificationEmail(email) {
+        try {
+            const normalizedEmail = email.toLowerCase().trim();
+            // Check if user exists
+            const user = await this.userRepository.findByEmail(normalizedEmail);
+            if (!user) {
+                // Don't reveal if user exists
+                logger_1.default.warn(`Resend verification requested for unknown email: ${normalizedEmail}`);
+                return { message: 'If an account exists, a new verification code has been sent.' };
+            }
+            // Check if already verified
+            if (user.email_verified) {
+                throw new AppError_1.AppError('Email is already verified.', 400);
+            }
+            // Check rate limiting — max 5 resends, 1 per minute
+            const existing = this.verificationOTPStore.get(normalizedEmail);
+            if (existing) {
+                const timeSinceLastResend = Date.now() - existing.lastResendAt.getTime();
+                if (timeSinceLastResend < 60 * 1000) {
+                    const secondsLeft = Math.ceil((60 * 1000 - timeSinceLastResend) / 1000);
+                    throw new AppError_1.AppError(`Please wait ${secondsLeft} seconds before requesting a new code.`, 429);
+                }
+                if (existing.resendCount >= 5) {
+                    throw new AppError_1.AppError('Maximum resend limit reached. Please contact support.', 429);
+                }
+            }
+            // Generate new OTP
+            const otp = crypto_1.default.randomInt(100000, 999999).toString();
+            const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+            const resendCount = existing ? existing.resendCount + 1 : 1;
+            // Store new OTP
+            this.verificationOTPStore.set(normalizedEmail, {
+                otp,
+                email: normalizedEmail,
+                userId: user.id,
+                expiresAt,
+                attempts: 0,
+                resendCount,
+                lastResendAt: new Date()
+            });
+            // Console log for development
+            console.log(`\n========================================`);
+            console.log(`🔄 RESEND EMAIL VERIFICATION OTP`);
+            console.log(`Email: ${normalizedEmail}`);
+            console.log(`OTP: ${otp}`);
+            console.log(`Resend #${resendCount}`);
+            console.log(`Expires: ${expiresAt.toISOString()}`);
+            console.log(`========================================\n`);
+            logger_1.default.info(`Verification OTP resent to ${normalizedEmail} (resend #${resendCount}): ${otp}`);
+            // TODO: Replace with real email sending when ready
+            // await this.emailService.sendVerificationOTP(normalizedEmail, otp, user.first_name);
+            return { message: 'A new verification code has been sent to your email.' };
+        }
+        catch (error) {
+            logger_1.default.error('Error in resendVerificationEmail:', error);
+            throw error;
+        }
+    }
+    // ============================================================================
+    // AUTH METHODS
     // ============================================================================
     async register(data) {
         try {
@@ -203,7 +367,6 @@ class AuthService {
             if (church.setup_status !== 'active') {
                 throw new AppError_1.AppError('Church setup is not complete.', 403);
             }
-            // Update last login
             await this.userRepository.updateLastLogin(user.id);
             const tokens = this.generateTokens(user);
             const { password_hash: _, ...userWithoutPassword } = user;
@@ -219,6 +382,7 @@ class AuthService {
                     name: church.name,
                     email: church.email,
                     slug: church.slug,
+                    currency: church.currency,
                     setupStatus: church.setup_status,
                     adminSetupSkipped: church.admin_setup_skipped
                 },
@@ -318,13 +482,30 @@ class AuthService {
             throw error;
         }
     }
-    async verifyEmail(token) {
-        // Implement email verification
-        return { message: 'Email verified successfully' };
-    }
-    async resendVerificationEmail(email) {
-        // Implement resend verification
-        return { message: 'Verification email sent' };
+    async changePassword(userId, currentPassword, newPassword) {
+        try {
+            const user = await this.userRepository.findById(userId);
+            if (!user) {
+                throw new AppError_1.AppError('User not found', 404);
+            }
+            const isPasswordValid = await bcryptjs_1.default.compare(currentPassword, user.password_hash);
+            if (!isPasswordValid) {
+                throw new AppError_1.AppError('Current password is incorrect', 401);
+            }
+            this.validatePasswordStrength(newPassword);
+            const isSamePassword = await bcryptjs_1.default.compare(newPassword, user.password_hash);
+            if (isSamePassword) {
+                throw new AppError_1.AppError('New password must be different from your current password.', 400);
+            }
+            const hashedPassword = await bcryptjs_1.default.hash(newPassword, 12);
+            await this.userRepository.updatePassword(userId, hashedPassword);
+            logger_1.default.info(`Password changed for user: ${userId}`);
+            return { message: 'Password changed successfully.' };
+        }
+        catch (error) {
+            logger_1.default.error('Error in changePassword:', error);
+            throw error;
+        }
     }
     // ============================================================================
     // HELPER METHODS
@@ -348,18 +529,22 @@ class AuthService {
     }
     cleanupExpiredData() {
         const now = new Date();
-        // Cleanup expired OTPs
         for (const [email, data] of this.resetOTPStore.entries()) {
             if (now > data.expiresAt) {
                 this.resetOTPStore.delete(email);
                 logger_1.default.debug(`Cleaned up expired reset OTP for: ${email}`);
             }
         }
-        // Cleanup expired tokens
         for (const [token, data] of this.resetTokenStore.entries()) {
             if (now > data.expiresAt) {
                 this.resetTokenStore.delete(token);
                 logger_1.default.debug(`Cleaned up expired reset token`);
+            }
+        }
+        for (const [email, data] of this.verificationOTPStore.entries()) {
+            if (now > data.expiresAt) {
+                this.verificationOTPStore.delete(email);
+                logger_1.default.debug(`Cleaned up expired verification OTP for: ${email}`);
             }
         }
     }
@@ -368,9 +553,6 @@ class AuthService {
         const jwtRefreshSecret = (process.env.JWT_REFRESH_SECRET ?? 'SecretRefreshKey123!');
         const jwtExpiresIn = (process.env.JWT_EXPIRES_IN ?? '7d');
         const jwtRefreshExpiresIn = (process.env.JWT_REFRESH_EXPIRES_IN ?? '30d');
-        if (!jwtSecret || !jwtRefreshSecret) {
-            throw new AppError_1.AppError('Server configuration error', 500);
-        }
         const payload = {
             id: user.id,
             email: user.email,

@@ -1,0 +1,1 @@
+{"version":3,"file":"convertCamelCase.d.ts","sourceRoot":"","sources":["../../src/middleware/convertCamelCase.ts"],"names":[],"mappings":"AAEA,OAAO,EAAE,OAAO,EAAE,QAAQ,EAAE,YAAY,EAAE,MAAM,SAAS,CAAC;AAiC1D;;;;GAIG;AACH,wBAAgB,gBAAgB,CAAC,GAAG,EAAE,OAAO,EAAE,IAAI,EAAE,QAAQ,EAAE,IAAI,EAAE,YAAY,GAAG,IAAI,CAOvF"}

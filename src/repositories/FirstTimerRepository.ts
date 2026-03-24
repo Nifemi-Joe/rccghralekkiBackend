@@ -23,23 +23,27 @@ export class FirstTimerRepository {
         try {
             await client.query('BEGIN');
 
-            // Get conversion period from church settings
-            const settingsResult = await client.query(
-                `SELECT COALESCE(
-                    (settings->>'first_timer_conversion_days')::int, 
-                    90
-                ) as conversion_days 
-                FROM churches WHERE id = $1`,
-                [data.churchId]
-            );
-            const conversionDays = settingsResult.rows[0]?.conversion_days || 90;
+            // Get conversion period from church settings (defensive: handle missing column)
+            let conversionDays = 90;
+            try {
+                const settingsResult = await client.query(
+                    `SELECT COALESCE(
+                        (settings->>'first_timer_conversion_days')::int,
+                        90
+                    ) as conversion_days
+                    FROM churches WHERE id = $1`,
+                    [data.churchId]
+                );
+                conversionDays = settingsResult.rows[0]?.conversion_days || 90;
+            } catch (settingsError) {
+                logger.warn('Could not read church settings for conversion days, using default 90', settingsError);
+            }
 
             const firstVisitDate = data.firstVisitDate ? new Date(data.firstVisitDate) : new Date();
             const conversionEligibleDate = new Date(firstVisitDate);
             conversionEligibleDate.setDate(conversionEligibleDate.getDate() + conversionDays);
 
             // Handle interests array properly for PostgreSQL
-            // PostgreSQL expects arrays in a specific format
             let interestsValue: string[] | null = null;
             if (data.interests && Array.isArray(data.interests) && data.interests.length > 0) {
                 interestsValue = data.interests;
@@ -74,11 +78,11 @@ export class FirstTimerRepository {
                     created_by
                 )
                 VALUES (
-                    $1, $2, $3, $4, $5, $6, $7, $8, $9, $10,
-                    $11, $12, $13, $14, $15, $16, $17, $18, $19, $20,
-                    $21, $22, $23, $24, $25
-                )
-                RETURNING *
+                           $1, $2, $3, $4, $5, $6, $7, $8, $9, $10,
+                           $11, $12, $13, $14, $15, $16, $17, $18, $19, $20,
+                           $21, $22, $23, $24, $25
+                       )
+                    RETURNING *
             `;
 
             const values = [
@@ -96,7 +100,7 @@ export class FirstTimerRepository {
                 firstVisitDate,
                 data.howDidYouHear || null,
                 data.invitedBy || null,
-                interestsValue,  // Pass array directly - node-postgres handles conversion
+                interestsValue,
                 data.prayerRequest || null,
                 data.wantsFollowUp ?? true,
                 'pending',
@@ -128,12 +132,12 @@ export class FirstTimerRepository {
 
     async findById(id: string, churchId: string): Promise<FirstTimer | null> {
         const query = `
-            SELECT ft.*, 
+            SELECT ft.*,
                    u.first_name || ' ' || u.last_name as assigned_to_name,
                    m.first_name || ' ' || m.last_name as converted_member_name
             FROM first_timers ft
-            LEFT JOIN users u ON ft.follow_up_assigned_to = u.id
-            LEFT JOIN members m ON ft.converted_to_member_id = m.id
+                     LEFT JOIN users u ON ft.follow_up_assigned_to = u.id
+                     LEFT JOIN members m ON ft.converted_to_member_id = m.id
             WHERE ft.id = $1 AND ft.church_id = $2 AND ft.deleted_at IS NULL
         `;
 
@@ -143,10 +147,10 @@ export class FirstTimerRepository {
 
     async findByEmail(email: string, churchId: string): Promise<FirstTimer | null> {
         const query = `
-            SELECT * FROM first_timers 
-            WHERE LOWER(email) = LOWER($1) 
-            AND church_id = $2 
-            AND deleted_at IS NULL
+            SELECT * FROM first_timers
+            WHERE LOWER(email) = LOWER($1)
+              AND church_id = $2
+              AND deleted_at IS NULL
         `;
 
         const result = await pool.query(query, [email, churchId]);
@@ -155,10 +159,10 @@ export class FirstTimerRepository {
 
     async findByPhone(phone: string, churchId: string): Promise<FirstTimer | null> {
         const query = `
-            SELECT * FROM first_timers 
-            WHERE phone = $1 
-            AND church_id = $2 
-            AND deleted_at IS NULL
+            SELECT * FROM first_timers
+            WHERE phone = $1
+              AND church_id = $2
+              AND deleted_at IS NULL
         `;
 
         const result = await pool.query(query, [phone, churchId]);
@@ -226,7 +230,7 @@ export class FirstTimerRepository {
         const countQuery = `
             SELECT COUNT(*) as total
             FROM first_timers ft
-            ${whereClause}
+                ${whereClause}
         `;
 
         // Sorting
@@ -244,19 +248,19 @@ export class FirstTimerRepository {
             'created_at': 'ft.created_at',
         }[sortBy] || 'ft.created_at';
 
-        // Data query
+        // Data query with pagination
         const page = filters.page || 1;
         const limit = filters.limit || 20;
         const offset = (page - 1) * limit;
 
         const dataQuery = `
-            SELECT ft.*, 
+            SELECT ft.*,
                    u.first_name || ' ' || u.last_name as assigned_to_name
             FROM first_timers ft
-            LEFT JOIN users u ON ft.follow_up_assigned_to = u.id
-            ${whereClause}
+                     LEFT JOIN users u ON ft.follow_up_assigned_to = u.id
+                ${whereClause}
             ORDER BY ${sortColumn} ${sortOrder}
-            LIMIT $${paramCount + 1} OFFSET $${paramCount + 2}
+                LIMIT $${paramCount + 1} OFFSET $${paramCount + 2}
         `;
 
         const countValues = [...values];
@@ -323,7 +327,6 @@ export class FirstTimerRepository {
                 if (key === 'email' && value) {
                     values.push((value as string).toLowerCase());
                 } else if (key === 'interests') {
-                    // Handle interests array properly
                     if (Array.isArray(value) && value.length > 0) {
                         values.push(value);
                     } else {
@@ -355,7 +358,7 @@ export class FirstTimerRepository {
             UPDATE first_timers
             SET ${fields.join(', ')}, updated_at = NOW()
             WHERE id = $${paramCount - 1} AND church_id = $${paramCount} AND deleted_at IS NULL
-            RETURNING *
+                RETURNING *
         `;
 
         const result = await pool.query(query, values);
@@ -368,8 +371,8 @@ export class FirstTimerRepository {
 
     async delete(id: string, churchId: string): Promise<boolean> {
         const query = `
-            UPDATE first_timers 
-            SET deleted_at = NOW() 
+            UPDATE first_timers
+            SET deleted_at = NOW()
             WHERE id = $1 AND church_id = $2 AND deleted_at IS NULL
         `;
 
@@ -390,7 +393,7 @@ export class FirstTimerRepository {
                 last_visit_date = $3,
                 updated_at = NOW()
             WHERE id = $1 AND church_id = $2 AND deleted_at IS NULL
-            RETURNING *
+                RETURNING *
         `;
 
         const result = await pool.query(query, [id, churchId, date]);
@@ -431,7 +434,7 @@ export class FirstTimerRepository {
                 follow_up_status = 'completed',
                 updated_at = NOW()
             WHERE id = $1 AND church_id = $2 AND deleted_at IS NULL
-            RETURNING *
+                RETURNING *
         `;
 
         const result = await pool.query(query, [id, churchId, memberId]);
@@ -440,13 +443,13 @@ export class FirstTimerRepository {
 
     async getConversionEligible(churchId: string): Promise<FirstTimer[]> {
         const query = `
-            SELECT ft.*, 
+            SELECT ft.*,
                    u.first_name || ' ' || u.last_name as assigned_to_name
             FROM first_timers ft
-            LEFT JOIN users u ON ft.follow_up_assigned_to = u.id
-            WHERE ft.church_id = $1 
-            AND ft.deleted_at IS NULL
-            AND ft.status != 'converted'
+                     LEFT JOIN users u ON ft.follow_up_assigned_to = u.id
+            WHERE ft.church_id = $1
+              AND ft.deleted_at IS NULL
+              AND ft.status != 'converted'
             AND ft.conversion_eligible_date <= NOW()
             ORDER BY ft.conversion_eligible_date ASC
         `;
@@ -461,22 +464,22 @@ export class FirstTimerRepository {
 
     async getPendingFollowUps(churchId: string): Promise<FirstTimer[]> {
         const query = `
-            SELECT ft.*, 
+            SELECT ft.*,
                    u.first_name || ' ' || u.last_name as assigned_to_name
             FROM first_timers ft
-            LEFT JOIN users u ON ft.follow_up_assigned_to = u.id
-            WHERE ft.church_id = $1 
-            AND ft.deleted_at IS NULL
-            AND ft.status != 'converted'
+                     LEFT JOIN users u ON ft.follow_up_assigned_to = u.id
+            WHERE ft.church_id = $1
+              AND ft.deleted_at IS NULL
+              AND ft.status != 'converted'
             AND ft.wants_follow_up = true
             AND ft.follow_up_status IN ('pending', 'contacted', 'scheduled')
-            ORDER BY 
-                CASE ft.follow_up_status 
-                    WHEN 'pending' THEN 1 
-                    WHEN 'scheduled' THEN 2 
-                    WHEN 'contacted' THEN 3 
-                    ELSE 4 
-                END,
+            ORDER BY
+                CASE ft.follow_up_status
+                WHEN 'pending' THEN 1
+                WHEN 'scheduled' THEN 2
+                WHEN 'contacted' THEN 3
+                ELSE 4
+            END,
                 ft.first_visit_date ASC
         `;
 
@@ -505,39 +508,61 @@ export class FirstTimerRepository {
                 FROM first_timers
                 WHERE church_id = $1 AND deleted_at IS NULL
             ),
-            sources AS (
-                SELECT how_did_you_hear as source, COUNT(*) as count
-                FROM first_timers
-                WHERE church_id = $1 AND deleted_at IS NULL AND how_did_you_hear IS NOT NULL
-                GROUP BY how_did_you_hear
-                ORDER BY count DESC
+                 sources AS (
+                     SELECT how_did_you_hear as source, COUNT(*) as count
+            FROM first_timers
+            WHERE church_id = $1 AND deleted_at IS NULL AND how_did_you_hear IS NOT NULL
+            GROUP BY how_did_you_hear
+            ORDER BY count DESC
                 LIMIT 10
-            ),
-            weekly_trend AS (
-                SELECT 
-                    TO_CHAR(DATE_TRUNC('week', first_visit_date), 'YYYY-MM-DD') as week,
-                    COUNT(*) as count
-                FROM first_timers
-                WHERE church_id = $1 
-                AND deleted_at IS NULL 
-                AND first_visit_date >= NOW() - INTERVAL '12 weeks'
-                GROUP BY DATE_TRUNC('week', first_visit_date)
-                ORDER BY week DESC
-            )
-            SELECT 
+                ),
+                weekly_trend AS (
+            SELECT
+                TO_CHAR(DATE_TRUNC('week', first_visit_date), 'YYYY-MM-DD') as week,
+                COUNT(*) as count
+            FROM first_timers
+            WHERE church_id = $1
+              AND deleted_at IS NULL
+              AND first_visit_date >= NOW() - INTERVAL '12 weeks'
+            GROUP BY DATE_TRUNC('week', first_visit_date)
+            ORDER BY week DESC
+                )
+            SELECT
                 s.*,
                 COALESCE(json_agg(DISTINCT jsonb_build_object('source', src.source, 'count', src.count)) FILTER (WHERE src.source IS NOT NULL), '[]') as by_source,
                 COALESCE(json_agg(DISTINCT jsonb_build_object('week', wt.week, 'count', wt.count)) FILTER (WHERE wt.week IS NOT NULL), '[]') as weekly_trend
             FROM stats s
-            LEFT JOIN sources src ON true
-            LEFT JOIN weekly_trend wt ON true
-            GROUP BY s.total, s.new_this_week, s.new_this_month, s.pending_follow_up, 
-                     s.conversion_eligible, s.converted, s.status_new, s.status_following_up, 
+                     LEFT JOIN sources src ON true
+                     LEFT JOIN weekly_trend wt ON true
+            GROUP BY s.total, s.new_this_week, s.new_this_month, s.pending_follow_up,
+                     s.conversion_eligible, s.converted, s.status_new, s.status_following_up,
                      s.status_regular_visitor, s.status_inactive
         `;
 
         const result = await pool.query(query, [churchId]);
         const row = result.rows[0];
+
+        // Handle case where table exists but has no data
+        if (!row) {
+            return {
+                total: 0,
+                newThisWeek: 0,
+                newThisMonth: 0,
+                pendingFollowUp: 0,
+                conversionEligible: 0,
+                converted: 0,
+                conversionRate: 0,
+                byStatus: {
+                    new: 0,
+                    following_up: 0,
+                    regular_visitor: 0,
+                    converted: 0,
+                    inactive: 0,
+                },
+                bySource: [],
+                weeklyTrend: [],
+            };
+        }
 
         const total = parseInt(row.total) || 0;
         const converted = parseInt(row.converted) || 0;
@@ -567,28 +592,55 @@ export class FirstTimerRepository {
     // ============================================================================
 
     async getConversionPeriod(churchId: string): Promise<number> {
-        const query = `
-            SELECT COALESCE(
-                (settings->>'first_timer_conversion_days')::int, 
-                90
-            ) as days 
-            FROM churches 
-            WHERE id = $1
-        `;
+        try {
+            const query = `
+                SELECT COALESCE(
+                    (settings->>'first_timer_conversion_days')::int,
+                    90
+                ) as days
+                FROM churches
+                WHERE id = $1
+            `;
 
-        const result = await pool.query(query, [churchId]);
-        return result.rows[0]?.days || 90;
+            const result = await pool.query(query, [churchId]);
+            return result.rows[0]?.days || 90;
+        } catch (error: any) {
+            // If the settings column doesn't exist, return default
+            if (error.code === '42703') {
+                logger.warn('settings column does not exist on churches table, returning default 90 days');
+                return 90;
+            }
+            throw error;
+        }
     }
 
     async setConversionPeriod(churchId: string, days: number): Promise<void> {
-        const query = `
-            UPDATE churches 
-            SET settings = COALESCE(settings, '{}'::jsonb) || jsonb_build_object('first_timer_conversion_days', $2),
-                updated_at = NOW()
-            WHERE id = $1
-        `;
+        try {
+            const query = `
+                UPDATE churches
+                SET settings = COALESCE(settings, '{}'::jsonb) || jsonb_build_object('first_timer_conversion_days', $2),
+                    updated_at = NOW()
+                WHERE id = $1
+            `;
 
-        await pool.query(query, [churchId, days]);
+            await pool.query(query, [churchId, days]);
+        } catch (error: any) {
+            // If the settings column doesn't exist, try to add it first
+            if (error.code === '42703') {
+                logger.warn('settings column does not exist, attempting to add it');
+                await pool.query(`ALTER TABLE churches ADD COLUMN IF NOT EXISTS settings JSONB DEFAULT '{}'::jsonb`);
+                // Retry the update
+                const query = `
+                    UPDATE churches
+                    SET settings = COALESCE(settings, '{}'::jsonb) || jsonb_build_object('first_timer_conversion_days', $2),
+                        updated_at = NOW()
+                    WHERE id = $1
+                `;
+                await pool.query(query, [churchId, days]);
+            } else {
+                throw error;
+            }
+        }
     }
 
     // ============================================================================
@@ -636,6 +688,6 @@ export class FirstTimerRepository {
             // Additional mapped fields from joins
             ...(row.assigned_to_name && { assignedToName: row.assigned_to_name }),
             ...(row.converted_member_name && { convertedMemberName: row.converted_member_name }),
-        };
+        } as FirstTimer;
     }
 }
