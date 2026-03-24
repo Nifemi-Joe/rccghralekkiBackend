@@ -11557,3 +11557,17 @@
 {"level":"info","message":"Twilio SMS client initialized successfully","service":"churchplus-api","timestamp":"2026-03-24 05:53:57"}
 {"level":"info","message":"🚀 Server running on port 5000 in production mode","service":"churchplus-api","timestamp":"2026-03-24 05:53:57"}
 {"level":"info","message":"📡 API available at http://localhost:5000/api/v1","service":"churchplus-api","timestamp":"2026-03-24 05:53:57"}
+{"level":"warn","message":"Email configuration incomplete - emails will be logged only","service":"churchplus-api","timestamp":"2026-03-24 05:55:04"}
+{"level":"info","message":"Twilio SMS client initialized successfully","service":"churchplus-api","timestamp":"2026-03-24 05:55:04"}
+{"level":"warn","message":"Email configuration incomplete - emails will be logged only","service":"churchplus-api","timestamp":"2026-03-24 05:55:04"}
+{"level":"info","message":"Twilio SMS client initialized successfully","service":"churchplus-api","timestamp":"2026-03-24 05:55:04"}
+{"level":"info","message":"Push notification service initialized","service":"churchplus-api","timestamp":"2026-03-24 05:55:07"}
+{"level":"info","message":"SMTP transporter initialized successfully","service":"churchplus-api","timestamp":"2026-03-24 05:55:08"}
+{"level":"warn","message":"Email configuration incomplete - emails will be logged only","service":"churchplus-api","timestamp":"2026-03-24 05:55:08"}
+{"level":"info","message":"Twilio SMS client initialized successfully","service":"churchplus-api","timestamp":"2026-03-24 05:55:08"}
+{"level":"info","message":"SMTP transporter initialized successfully","service":"churchplus-api","timestamp":"2026-03-24 05:55:09"}
+{"level":"info","message":"SMTP transporter initialized successfully","service":"churchplus-api","timestamp":"2026-03-24 05:55:10"}
+{"level":"warn","message":"Email configuration incomplete - emails will be logged only","service":"churchplus-api","timestamp":"2026-03-24 05:55:11"}
+{"level":"info","message":"Twilio SMS client initialized successfully","service":"churchplus-api","timestamp":"2026-03-24 05:55:11"}
+{"level":"info","message":"🚀 Server running on port 5000 in production mode","service":"churchplus-api","timestamp":"2026-03-24 05:55:11"}
+{"level":"info","message":"📡 API available at http://localhost:5000/api/v1","service":"churchplus-api","timestamp":"2026-03-24 05:55:11"}
