@@ -70,7 +70,6 @@ export interface Event {
     // Relations
     groupId?: string;
     groupName?: string;
-    ministryId?: string;
 
     // Metadata
     tags?: string[];
@@ -239,7 +238,6 @@ export interface CreateEventDTO {
     reminderHours?: number;
 
     groupId?: string;
-    ministryId?: string;
     tags?: string[];
 
     ticketTypes?: CreateTicketTypeDTO[];

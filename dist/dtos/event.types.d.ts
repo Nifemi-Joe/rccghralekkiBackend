@@ -51,7 +51,6 @@ export interface Event {
     reminderHours: number;
     groupId?: string;
     groupName?: string;
-    ministryId?: string;
     tags?: string[];
     customFields?: Record<string, any>;
     totalAttendance?: number;
@@ -186,7 +185,6 @@ export interface CreateEventDTO {
     sendReminders?: boolean;
     reminderHours?: number;
     groupId?: string;
-    ministryId?: string;
     tags?: string[];
     ticketTypes?: CreateTicketTypeDTO[];
 }

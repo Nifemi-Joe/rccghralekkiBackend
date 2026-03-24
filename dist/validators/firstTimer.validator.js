@@ -1,10 +1,10 @@
 "use strict";
+// src/validators/firstTimer.validator.ts
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.updateConversionSettingsSchema = exports.convertToMemberSchema = exports.recordVisitSchema = exports.updateFirstTimerSchema = exports.createFirstTimerSchema = void 0;
-// src/validators/firstTimer.validator.ts
 const joi_1 = __importDefault(require("joi"));
 exports.createFirstTimerSchema = joi_1.default.object({
     firstName: joi_1.default.string().min(2).max(50).required().messages({
@@ -32,7 +32,10 @@ exports.createFirstTimerSchema = joi_1.default.object({
     prayerRequest: joi_1.default.string().max(2000).allow('', null),
     wantsFollowUp: joi_1.default.boolean().default(true),
     notes: joi_1.default.string().max(2000).allow('', null),
-});
+    interestedInMembership: joi_1.default.boolean().allow(null),
+})
+    .options({ stripUnknown: true })
+    .unknown(false);
 exports.updateFirstTimerSchema = joi_1.default.object({
     firstName: joi_1.default.string().min(2).max(50),
     lastName: joi_1.default.string().min(2).max(50),
@@ -55,11 +58,14 @@ exports.updateFirstTimerSchema = joi_1.default.object({
     followUpNotes: joi_1.default.string().max(2000).allow('', null),
     status: joi_1.default.string().valid('new', 'following_up', 'regular_visitor', 'converted', 'inactive'),
     notes: joi_1.default.string().max(2000).allow('', null),
-});
+    interestedInMembership: joi_1.default.boolean().allow(null),
+})
+    .options({ stripUnknown: true });
 exports.recordVisitSchema = joi_1.default.object({
     visitDate: joi_1.default.date().max('now').default(new Date()),
     notes: joi_1.default.string().max(500).allow('', null),
-});
+})
+    .options({ stripUnknown: true });
 exports.convertToMemberSchema = joi_1.default.object({
     additionalData: joi_1.default.object({
         maritalStatus: joi_1.default.string().valid('single', 'married', 'divorced', 'widowed').allow(null),
@@ -67,12 +73,14 @@ exports.convertToMemberSchema = joi_1.default.object({
         postalCode: joi_1.default.string().max(20).allow('', null),
         notes: joi_1.default.string().max(2000).allow('', null),
     }).allow(null),
-});
+})
+    .options({ stripUnknown: true });
 exports.updateConversionSettingsSchema = joi_1.default.object({
     conversionPeriodDays: joi_1.default.number().integer().min(1).max(365).required().messages({
         'number.min': 'Conversion period must be at least 1 day',
         'number.max': 'Conversion period cannot exceed 365 days',
         'any.required': 'Conversion period is required',
     }),
-});
+})
+    .options({ stripUnknown: true });
 //# sourceMappingURL=firstTimer.validator.js.map

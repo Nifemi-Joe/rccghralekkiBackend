@@ -1,4 +1,5 @@
 // src/validators/firstTimer.validator.ts
+
 import Joi from 'joi';
 
 export const createFirstTimerSchema = Joi.object({
@@ -27,7 +28,10 @@ export const createFirstTimerSchema = Joi.object({
     prayerRequest: Joi.string().max(2000).allow('', null),
     wantsFollowUp: Joi.boolean().default(true),
     notes: Joi.string().max(2000).allow('', null),
-});
+    interestedInMembership: Joi.boolean().allow(null),
+})
+    .options({ stripUnknown: true })
+    .unknown(false);
 
 export const updateFirstTimerSchema = Joi.object({
     firstName: Joi.string().min(2).max(50),
@@ -51,12 +55,15 @@ export const updateFirstTimerSchema = Joi.object({
     followUpNotes: Joi.string().max(2000).allow('', null),
     status: Joi.string().valid('new', 'following_up', 'regular_visitor', 'converted', 'inactive'),
     notes: Joi.string().max(2000).allow('', null),
-});
+    interestedInMembership: Joi.boolean().allow(null),
+})
+    .options({ stripUnknown: true });
 
 export const recordVisitSchema = Joi.object({
     visitDate: Joi.date().max('now').default(new Date()),
     notes: Joi.string().max(500).allow('', null),
-});
+})
+    .options({ stripUnknown: true });
 
 export const convertToMemberSchema = Joi.object({
     additionalData: Joi.object({
@@ -65,7 +72,8 @@ export const convertToMemberSchema = Joi.object({
         postalCode: Joi.string().max(20).allow('', null),
         notes: Joi.string().max(2000).allow('', null),
     }).allow(null),
-});
+})
+    .options({ stripUnknown: true });
 
 export const updateConversionSettingsSchema = Joi.object({
     conversionPeriodDays: Joi.number().integer().min(1).max(365).required().messages({
@@ -73,4 +81,5 @@ export const updateConversionSettingsSchema = Joi.object({
         'number.max': 'Conversion period cannot exceed 365 days',
         'any.required': 'Conversion period is required',
     }),
-});
+})
+    .options({ stripUnknown: true });

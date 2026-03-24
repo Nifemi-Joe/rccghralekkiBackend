@@ -68,25 +68,25 @@ export class EventRepository {
                 qr_code, is_active, is_public, is_featured,
                 allow_self_checkin, allow_guest_checkin, require_approval,
                 send_reminders, reminder_hours,
-                group_id, ministry_id, tags,
+                group_id, tags,
                 created_by, current_registrations, total_attendance, total_revenue,
                 created_at, updated_at
             ) VALUES (
-                $1, $2, $3, $4, $5, $6,
-                $7, $8, $9, $10, $11,
-                $12, $13, $14, $15, $16,
-                $17, $18, $19, $20, $21,
-                $22, $23, $24, $25,
-                $26, $27, $28, $29, $30,
-                $31, $32,
-                $33, $34, $35, $36,
-                $37, $38, $39,
-                $40, $41,
-                $42, $43, $44,
-                $45, 0, 0, 0,
-                NOW(), NOW()
-            )
-            RETURNING *
+                         $1, $2, $3, $4, $5, $6,
+                         $7, $8, $9, $10, $11,
+                         $12, $13, $14, $15, $16,
+                         $17, $18, $19, $20, $21,
+                         $22, $23, $24, $25,
+                         $26, $27, $28, $29, $30,
+                         $31, $32,
+                         $33, $34, $35, $36,
+                         $37, $38, $39,
+                         $40, $41,
+                         $42, $43,
+                         $44, 0, 0, 0,
+                         NOW(), NOW()
+                     )
+                RETURNING *
         `;
 
         const values = [
@@ -100,7 +100,7 @@ export class EventRepository {
             qrCode, data.isActive ?? true, data.isPublic ?? true, data.isFeatured ?? false,
             data.allowSelfCheckin ?? true, data.allowGuestCheckin ?? false, data.requireApproval ?? false,
             data.sendReminders ?? true, data.reminderHours ?? 24,
-            data.groupId || null, data.ministryId || null, data.tags ? JSON.stringify(data.tags) : null,
+            data.groupId || null, data.tags ? JSON.stringify(data.tags) : null,
             createdBy || null
         ];
 
@@ -460,7 +460,6 @@ export class EventRepository {
             sendReminders: 'send_reminders',
             reminderHours: 'reminder_hours',
             groupId: 'group_id',
-            ministryId: 'ministry_id',
             tags: 'tags'
         };
 
@@ -1185,7 +1184,6 @@ export class EventRepository {
             reminderHours: row.reminder_hours || 24,
             groupId: row.group_id,
             groupName: row.group_name,
-            ministryId: row.ministry_id,
             tags: row.tags ? (typeof row.tags === 'string' ? JSON.parse(row.tags) : row.tags) : undefined,
             customFields: row.custom_fields,
             totalAttendance: row.total_attendance || 0,

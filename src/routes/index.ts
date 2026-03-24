@@ -4,7 +4,6 @@ import churchRoutes from './church.routes';
 import memberRoutes from './member.routes';
 import eventRoutes from './event.routes';
 import attendanceRoutes from './attendance.routes';
-import financialRoutes from './financial.routes';
 import reportRoutes from './report.routes';
 import groupRoutes from './group.routes';
 import familyRoutes from './family.routes';
@@ -24,6 +23,8 @@ import smsRoutes from './sms.routes'
 import emailRoutes from './email.routes';
 import whatsappRoutes from './whatsapp.routes';
 import voiceRoutes from './voice.routes';
+import walletRoutes from './wallet.routes';
+import financialRoutes from './financial.routes'
 
 const router = Router();
 
@@ -49,6 +50,9 @@ router.use('/member-self-update', memberSelfUpdateRoutes);
 router.use('/sms', smsRoutes);
 router.use(`/email`, emailRoutes);
 router.use(`/whatsapp`, whatsappRoutes);
+router.use(`/wallet`, walletRoutes);
+router.use('/financials', financialRoutes);
+
 router.use(`/voice`, voiceRoutes);
 // router.use('/webhooks', webhookRoutes);
 
