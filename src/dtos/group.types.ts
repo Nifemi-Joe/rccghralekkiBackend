@@ -1,4 +1,5 @@
 // src/dtos/group.types.ts
+export type ApprovalStatus = 'pending' | 'approved' | 'rejected';
 
 export interface GroupType {
     id: string;
@@ -33,6 +34,13 @@ export interface Group {
         first_name: string;
         last_name: string;
     };
+// Approval fields
+    approval_status: ApprovalStatus;
+    approved_by?: string;
+    approved_at?: Date;
+    rejected_by?: string;
+    rejected_at?: Date;
+    rejection_reason?: string;
 
     // Meeting defaults
     default_meeting_day?: string;
@@ -93,6 +101,13 @@ export interface GroupMember {
     joined_at: Date;
     invited_by?: string;
     notes?: string;
+    // Approval fields
+    approval_status: ApprovalStatus;
+    approved_by?: string;
+    approved_at?: Date;
+    rejected_by?: string;
+    rejected_at?: Date;
+    rejection_reason?: string;
 }
 
 export interface GroupMeeting {
@@ -238,6 +253,38 @@ export interface GroupStatistics {
     upcomingMeetings: number;
     meetingsThisWeek: number;
     byType: Array<{ type: string; count: number }>;
+}
+
+// New DTOs for approval actions
+export interface ApproveGroupDTO {
+    groupId: string;
+    approvedBy: string;
+}
+
+export interface RejectGroupDTO {
+    groupId: string;
+    rejectedBy: string;
+    reason: string;
+}
+
+export interface ApproveGroupMemberDTO {
+    groupId: string;
+    memberId: string;
+    approvedBy: string;
+}
+
+export interface RejectGroupMemberDTO {
+    groupId: string;
+    memberId: string;
+    rejectedBy: string;
+    reason: string;
+}
+
+export interface PendingApprovalsResponse {
+    pendingGroups: Group[];
+    pendingMembers: Array<GroupMember & { group_name: string }>;
+    totalPendingGroups: number;
+    totalPendingMembers: number;
 }
 
 export interface PaginatedGroups {

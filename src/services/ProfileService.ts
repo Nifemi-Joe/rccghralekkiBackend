@@ -17,19 +17,19 @@ import {
 } from '@/dtos/staff.types';
 import { Member } from '@/dtos/member.types';
 import logger from '@config/logger';
-// import { EmailService } from '@services/EmailService';
+import { EmailService } from '@services/EmailService';
 
 export class ProfileService {
     private userRepository: UserRepository;
     private churchRepository: ChurchRepository;
     private memberRepository: MemberRepository;
-    // private emailService: EmailService;
+    private emailService: EmailService;
 
     constructor() {
         this.userRepository = new UserRepository();
         this.churchRepository = new ChurchRepository();
         this.memberRepository = new MemberRepository();
-        // this.emailService = new EmailService();
+        this.emailService = new EmailService();
     }
 
     // ============================================================================
@@ -489,18 +489,30 @@ export class ProfileService {
             mustResetPassword: true,
         });
 
-        // Send new invitation email
-        await this.sendStaffInvitation(user.email, {
-            firstName: user.first_name,
-            lastName: user.last_name,
-            churchName: church.name,
-            temporaryPassword,
-            role: user.role,
-        });
+        // Send RESEND invitation email with new password
+        try {
+            const sent = await this.emailService.resendStaffInvitation(user.email, {
+                firstName: user.first_name,
+                lastName: user.last_name,
+                churchName: church.name,
+                temporaryPassword,
+                role: user.role,
+            });
 
-        logger.info(`Invitation resent to: ${user.email}`);
+            if (sent) {
+                logger.info(`✅ Staff invitation resent to: ${user.email}`);
+            } else {
+                logger.error(`❌ Failed to resend invitation to: ${user.email}`);
+            }
+        } catch (error) {
+            logger.error(`Error resending staff invitation:`, error);
+            throw new AppError('Failed to send invitation email', 500);
+        }
 
-        return { message: 'Invitation resent successfully' };
+        return {
+            message: 'Invitation resent successfully with new credentials',
+            email: user.email
+        };
     }
 
     async getAvailablePermissions() {
@@ -624,6 +636,8 @@ export class ProfileService {
         logger.debug(`Updating permissions for user ${userId}: ${permissions.join(', ')}`);
     }
 
+    // src/services/ProfileService.ts
+
     private async sendStaffInvitation(
         email: string,
         data: {
@@ -634,37 +648,18 @@ export class ProfileService {
             role: string;
         }
     ): Promise<void> {
-        // TODO: Implement email sending
-        logger.info(`
-      ===============================================
-      STAFF INVITATION EMAIL (Development Mode)
-      ===============================================
-      To: ${email}
-      Subject: Welcome to ${data.churchName}
-      
-      Hello ${data.firstName} ${data.lastName},
-      
-      You have been added as a ${data.role} to ${data.churchName}.
-      
-      Your login credentials:
-      Email: ${email}
-      Temporary Password: ${data.temporaryPassword}
-      
-      Please login and change your password immediately.
-      
-      Login URL: ${process.env.FRONTEND_URL || 'http://localhost:8080'}/login
-      ===============================================
-    `);
+        try {
+            const sent = await this.emailService.sendStaffInvitation(email, data);
 
-        // In production:
-        // await this.emailService.send({
-        //   to: email,
-        //   subject: `Welcome to ${data.churchName}`,
-        //   template: 'staff-invitation',
-        //   data: {
-        //     ...data,
-        //     loginUrl: `${process.env.FRONTEND_URL}/login`,
-        //   },
-        // });
+            if (!sent) {
+                logger.error(`Failed to send staff invitation to ${email}`);
+                // Don't throw - staff was created successfully, email is secondary
+            } else {
+                logger.info(`✅ Staff invitation email sent to ${email}`);
+            }
+        } catch (error) {
+            logger.error(`Error sending staff invitation email to ${email}:`, error);
+            // Don't throw - staff account creation should succeed even if email fails
+        }
     }
 }

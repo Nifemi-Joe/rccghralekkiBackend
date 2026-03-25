@@ -6,6 +6,7 @@ import { ChurchRepository } from '@repositories/ChurchRepository';
 import { AppError } from '@utils/AppError';
 import logger from '@config/logger';
 import { RegisterDTO } from '@/dtos/auth.types';
+import { emailService } from '@services/EmailService';
 
 // ============================================================================
 // INTERFACES
@@ -78,13 +79,6 @@ export class AuthService {
             const otp = crypto.randomInt(100000, 999999).toString();
             const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
 
-            console.log(`\n========================================`);
-            console.log(`🔑 PASSWORD RESET OTP`);
-            console.log(`Email: ${normalizedEmail}`);
-            console.log(`OTP: ${otp}`);
-            console.log(`Expires: ${expiresAt.toISOString()}`);
-            console.log(`========================================\n`);
-
             this.resetOTPStore.set(normalizedEmail, {
                 otp,
                 email: normalizedEmail,
@@ -93,7 +87,28 @@ export class AuthService {
                 attempts: 0
             });
 
-            logger.info(`Password reset OTP for ${normalizedEmail}: ${otp}`);
+            // ✅ SEND REAL EMAIL
+            try {
+                await emailService.sendPasswordResetOTP(
+                    normalizedEmail,
+                    otp,
+                    user.first_name || 'User'
+                );
+                logger.info(`✅ Password reset OTP sent to ${normalizedEmail}`);
+            } catch (emailError) {
+                logger.error(`❌ Failed to send reset OTP email to ${normalizedEmail}:`, emailError);
+                // Still return success to prevent user enumeration
+            }
+
+            // Keep console log for development
+            if (process.env.NODE_ENV === 'development') {
+                console.log(`\n${'='.repeat(50)}`);
+                console.log(`🔑 PASSWORD RESET OTP (DEV MODE)`);
+                console.log(`Email: ${normalizedEmail}`);
+                console.log(`OTP: ${otp}`);
+                console.log(`Expires: ${expiresAt.toISOString()}`);
+                console.log(`${'='.repeat(50)}\n`);
+            }
 
             return { message: 'Verification code sent to your email.' };
         } catch (error) {
@@ -192,14 +207,11 @@ export class AuthService {
     async resendResetOTP(email: string): Promise<{ message: string }> {
         try {
             const normalizedEmail = email.toLowerCase().trim();
-
             const otp = crypto.randomInt(100000, 999999).toString();
             const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
 
             const existing = this.resetOTPStore.get(normalizedEmail);
-
             if (existing) {
-                // Rate limit resends — 1 per minute
                 const timeSinceCreated = Date.now() - (existing.expiresAt.getTime() - 10 * 60 * 1000);
                 if (timeSinceCreated < 60 * 1000) {
                     throw new AppError('Please wait 1 minute before requesting a new code.', 429);
@@ -211,13 +223,6 @@ export class AuthService {
                 return { message: 'If an account exists, a new code has been sent.' };
             }
 
-            console.log(`\n========================================`);
-            console.log(`🔄 RESEND PASSWORD RESET OTP`);
-            console.log(`Email: ${normalizedEmail}`);
-            console.log(`OTP: ${otp}`);
-            console.log(`Expires: ${expiresAt.toISOString()}`);
-            console.log(`========================================\n`);
-
             this.resetOTPStore.set(normalizedEmail, {
                 otp,
                 email: normalizedEmail,
@@ -226,7 +231,25 @@ export class AuthService {
                 attempts: 0
             });
 
-            logger.info(`Password reset OTP resent for ${normalizedEmail}: ${otp}`);
+            // ✅ SEND REAL EMAIL
+            try {
+                await emailService.sendPasswordResetOTP(
+                    normalizedEmail,
+                    otp,
+                    user.first_name || 'User'
+                );
+                logger.info(`✅ Password reset OTP resent to ${normalizedEmail}`);
+            } catch (emailError) {
+                logger.error(`❌ Failed to resend reset OTP email:`, emailError);
+            }
+
+            if (process.env.NODE_ENV === 'development') {
+                console.log(`\n${'='.repeat(50)}`);
+                console.log(`🔄 RESEND PASSWORD RESET OTP (DEV MODE)`);
+                console.log(`Email: ${normalizedEmail}`);
+                console.log(`OTP: ${otp}`);
+                console.log(`${'='.repeat(50)}\n`);
+            }
 
             return { message: 'A new verification code has been sent.' };
         } catch (error) {
@@ -234,6 +257,7 @@ export class AuthService {
             throw error;
         }
     }
+
 
     // ============================================================================
     // EMAIL VERIFICATION FLOW
@@ -246,9 +270,8 @@ export class AuthService {
     async sendVerificationOTP(email: string, userId: string): Promise<{ message: string }> {
         try {
             const normalizedEmail = email.toLowerCase().trim();
-
             const otp = crypto.randomInt(100000, 999999).toString();
-            const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+            const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
 
             this.verificationOTPStore.set(normalizedEmail, {
                 otp,
@@ -260,17 +283,29 @@ export class AuthService {
                 lastResendAt: new Date()
             });
 
-            console.log(`\n========================================`);
-            console.log(`📧 EMAIL VERIFICATION OTP`);
-            console.log(`Email: ${normalizedEmail}`);
-            console.log(`OTP: ${otp}`);
-            console.log(`Expires: ${expiresAt.toISOString()}`);
-            console.log(`========================================\n`);
+            // Get user details for personalization
+            const user = await this.userRepository.findById(userId);
+            const firstName = user?.first_name || 'User';
 
-            logger.info(`Email verification OTP sent to ${normalizedEmail}: ${otp}`);
+            // ✅ SEND REAL EMAIL
+            try {
+                await emailService.sendEmailVerificationOTP(
+                    normalizedEmail,
+                    otp,
+                    firstName
+                );
+                logger.info(`✅ Email verification OTP sent to ${normalizedEmail}`);
+            } catch (emailError) {
+                logger.error(`❌ Failed to send verification OTP email:`, emailError);
+            }
 
-            // TODO: Replace with real email sending
-            // await this.emailService.sendVerificationOTP(normalizedEmail, otp, firstName);
+            if (process.env.NODE_ENV === 'development') {
+                console.log(`\n${'='.repeat(50)}`);
+                console.log(`📧 EMAIL VERIFICATION OTP (DEV MODE)`);
+                console.log(`Email: ${normalizedEmail}`);
+                console.log(`OTP: ${otp}`);
+                console.log(`${'='.repeat(50)}\n`);
+            }
 
             return { message: 'Verification code sent to your email.' };
         } catch (error) {
