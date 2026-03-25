@@ -100,6 +100,30 @@ export declare class EmailService {
     processScheduledCampaigns(): Promise<void>;
     sendOtp(to: string, otp: string, firstName: string): Promise<void>;
     sendProfileUpdateLink(to: string, data: ProfileUpdateLinkData): Promise<void>;
+    /**
+     * Send Staff Invitation Email (First Time)
+     */
+    sendStaffInvitation(email: string, data: {
+        firstName: string;
+        lastName: string;
+        churchName: string;
+        temporaryPassword: string;
+        role: string;
+    }): Promise<boolean>;
+    /**
+     * Resend Staff Invitation Email (With New Password)
+     */
+    resendStaffInvitation(email: string, data: {
+        firstName: string;
+        lastName: string;
+        churchName: string;
+        temporaryPassword: string;
+        role: string;
+    }): Promise<boolean>;
+    /**
+     * Helper: Get Role Display Name
+     */
+    private getRoleDisplayName;
     sendPasswordResetEmail(to: string, resetLink: string, firstName: string): Promise<void>;
 }
 export declare const emailService: EmailService;

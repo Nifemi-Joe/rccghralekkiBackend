@@ -5,6 +5,7 @@ export declare class ProfileService {
     private userRepository;
     private churchRepository;
     private memberRepository;
+    private emailService;
     constructor();
     getProfile(userId: string): Promise<{
         user: {
@@ -121,6 +122,7 @@ export declare class ProfileService {
     }>;
     resendInvitation(churchId: string, staffId: string): Promise<{
         message: string;
+        email: string;
     }>;
     getAvailablePermissions(): Promise<{
         permissions: import("@/dtos/staff.types").StaffPermission[];

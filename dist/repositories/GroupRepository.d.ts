@@ -1,12 +1,10 @@
-import { Group, GroupType, GroupMember, GroupMeeting, CreateGroupDTO, UpdateGroupDTO, AddGroupMemberDTO, CreateMeetingDTO, UpdateMeetingDTO, GroupFilters, PaginatedGroups, GroupStatistics } from '@/dtos/group.types';
+import { Group, GroupType, GroupMember, GroupMeeting, CreateGroupDTO, UpdateGroupDTO, AddGroupMemberDTO, CreateMeetingDTO, UpdateMeetingDTO, GroupFilters, PaginatedGroups, GroupStatistics, PendingApprovalsResponse } from '@/dtos/group.types';
 export declare class GroupRepository {
-    create(churchId: string, data: CreateGroupDTO, createdBy?: string): Promise<Group>;
     findAll(filters: GroupFilters): Promise<PaginatedGroups>;
     findById(churchId: string, groupId: string): Promise<Group | null>;
     update(churchId: string, groupId: string, data: UpdateGroupDTO): Promise<Group | null>;
     delete(churchId: string, groupId: string): Promise<boolean>;
     getStatistics(churchId: string): Promise<GroupStatistics>;
-    addMember(groupId: string, data: AddGroupMemberDTO, invitedBy?: string): Promise<GroupMember>;
     removeMember(groupId: string, memberId: string): Promise<boolean>;
     updateMemberRole(groupId: string, memberId: string, role: string): Promise<GroupMember | null>;
     getMemberById(groupId: string, memberId: string): Promise<GroupMember | null>;
@@ -28,6 +26,19 @@ export declare class GroupRepository {
     deleteMeeting(meetingId: string, churchId: string): Promise<boolean>;
     markMeetingShared(meetingId: string, shareType: 'email' | 'sms' | 'whatsapp'): Promise<void>;
     createGroupType(churchId: string, name: string, description?: string, icon?: string, color?: string): Promise<GroupType>;
+    approveGroup(churchId: string, groupId: string, approvedBy: string): Promise<Group | null>;
+    rejectGroup(churchId: string, groupId: string, rejectedBy: string, reason: string): Promise<Group | null>;
+    getPendingGroups(churchId: string): Promise<Group[]>;
+    approveGroupMember(groupId: string, memberId: string, approvedBy: string): Promise<GroupMember | null>;
+    rejectGroupMember(groupId: string, memberId: string, rejectedBy: string, reason: string): Promise<GroupMember | null>;
+    getPendingGroupMembers(churchId: string): Promise<Array<GroupMember & {
+        group_name: string;
+    }>>;
+    getPendingGroupMembersByGroup(groupId: string): Promise<GroupMember[]>;
+    getAllPendingApprovals(churchId: string): Promise<PendingApprovalsResponse>;
+    private updateGroupMemberCount;
+    create(churchId: string, data: CreateGroupDTO, createdBy?: string): Promise<Group>;
+    addMember(groupId: string, data: AddGroupMemberDTO, invitedBy?: string): Promise<GroupMember>;
     findAllGroupTypes(churchId: string): Promise<GroupType[]>;
     updateGroupType(churchId: string, typeId: string, data: Partial<GroupType>): Promise<GroupType | null>;
     deleteGroupType(churchId: string, typeId: string): Promise<boolean>;
