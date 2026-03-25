@@ -12,14 +12,13 @@ const MemberRepository_1 = require("@repositories/MemberRepository");
 const AppError_1 = require("@utils/AppError");
 const staff_types_1 = require("@/dtos/staff.types");
 const logger_1 = __importDefault(require("@config/logger"));
-// import { EmailService } from '@services/EmailService';
+const EmailService_1 = require("@services/EmailService");
 class ProfileService {
-    // private emailService: EmailService;
     constructor() {
         this.userRepository = new UserRepository_1.UserRepository();
         this.churchRepository = new ChurchRepository_1.ChurchRepository();
         this.memberRepository = new MemberRepository_1.MemberRepository();
-        // this.emailService = new EmailService();
+        this.emailService = new EmailService_1.EmailService();
     }
     // ============================================================================
     // PROFILE MANAGEMENT
@@ -382,16 +381,30 @@ class ProfileService {
             isTemporaryPassword: true,
             mustResetPassword: true,
         });
-        // Send new invitation email
-        await this.sendStaffInvitation(user.email, {
-            firstName: user.first_name,
-            lastName: user.last_name,
-            churchName: church.name,
-            temporaryPassword,
-            role: user.role,
-        });
-        logger_1.default.info(`Invitation resent to: ${user.email}`);
-        return { message: 'Invitation resent successfully' };
+        // Send RESEND invitation email with new password
+        try {
+            const sent = await this.emailService.resendStaffInvitation(user.email, {
+                firstName: user.first_name,
+                lastName: user.last_name,
+                churchName: church.name,
+                temporaryPassword,
+                role: user.role,
+            });
+            if (sent) {
+                logger_1.default.info(`✅ Staff invitation resent to: ${user.email}`);
+            }
+            else {
+                logger_1.default.error(`❌ Failed to resend invitation to: ${user.email}`);
+            }
+        }
+        catch (error) {
+            logger_1.default.error(`Error resending staff invitation:`, error);
+            throw new AppError_1.AppError('Failed to send invitation email', 500);
+        }
+        return {
+            message: 'Invitation resent successfully with new credentials',
+            email: user.email
+        };
     }
     async getAvailablePermissions() {
         return {
@@ -501,38 +514,22 @@ class ProfileService {
         // This is a placeholder - you'd implement actual storage
         logger_1.default.debug(`Updating permissions for user ${userId}: ${permissions.join(', ')}`);
     }
+    // src/services/ProfileService.ts
     async sendStaffInvitation(email, data) {
-        // TODO: Implement email sending
-        logger_1.default.info(`
-      ===============================================
-      STAFF INVITATION EMAIL (Development Mode)
-      ===============================================
-      To: ${email}
-      Subject: Welcome to ${data.churchName}
-      
-      Hello ${data.firstName} ${data.lastName},
-      
-      You have been added as a ${data.role} to ${data.churchName}.
-      
-      Your login credentials:
-      Email: ${email}
-      Temporary Password: ${data.temporaryPassword}
-      
-      Please login and change your password immediately.
-      
-      Login URL: ${process.env.FRONTEND_URL || 'http://localhost:8080'}/login
-      ===============================================
-    `);
-        // In production:
-        // await this.emailService.send({
-        //   to: email,
-        //   subject: `Welcome to ${data.churchName}`,
-        //   template: 'staff-invitation',
-        //   data: {
-        //     ...data,
-        //     loginUrl: `${process.env.FRONTEND_URL}/login`,
-        //   },
-        // });
+        try {
+            const sent = await this.emailService.sendStaffInvitation(email, data);
+            if (!sent) {
+                logger_1.default.error(`Failed to send staff invitation to ${email}`);
+                // Don't throw - staff was created successfully, email is secondary
+            }
+            else {
+                logger_1.default.info(`✅ Staff invitation email sent to ${email}`);
+            }
+        }
+        catch (error) {
+            logger_1.default.error(`Error sending staff invitation email to ${email}:`, error);
+            // Don't throw - staff account creation should succeed even if email fails
+        }
     }
 }
 exports.ProfileService = ProfileService;

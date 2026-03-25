@@ -7,43 +7,6 @@ class GroupRepository {
     // ============================================================================
     // GROUPS
     // ============================================================================
-    async create(churchId, data, createdBy) {
-        const query = `
-      INSERT INTO groups (
-        church_id, name, description, group_type_id, leader_id, co_leader_id,
-        default_meeting_day, default_meeting_time, default_meeting_type,
-        default_location_type, default_location_address, default_location_city, default_location_notes,
-        default_online_platform, default_meeting_link, default_meeting_id, default_meeting_password,
-        cover_image_url, is_public, max_members, created_by
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21)
-      RETURNING *
-    `;
-        const values = [
-            churchId,
-            data.name,
-            data.description || null,
-            data.groupTypeId || null,
-            data.leaderId || null,
-            data.coLeaderId || null,
-            data.defaultMeetingDay || null,
-            data.defaultMeetingTime || null,
-            data.defaultMeetingType || 'physical',
-            data.defaultLocationType || 'church',
-            data.defaultLocationAddress || null,
-            data.defaultLocationCity || null,
-            data.defaultLocationNotes || null,
-            data.defaultOnlinePlatform || null,
-            data.defaultMeetingLink || null,
-            data.defaultMeetingId || null,
-            data.defaultMeetingPassword || null,
-            data.coverImageUrl || null,
-            data.isPublic !== false,
-            data.maxMembers || null,
-            createdBy || null,
-        ];
-        const result = await database_1.pool.query(query, values);
-        return this.findById(churchId, result.rows[0].id);
-    }
     async findAll(filters) {
         const { churchId, search, typeId, isActive, leaderId, page = 1, limit = 20, } = filters;
         let whereClause = 'WHERE g.church_id = $1 AND g.deleted_at IS NULL';
@@ -269,18 +232,6 @@ class GroupRepository {
     // ============================================================================
     // GROUP MEMBERS
     // ============================================================================
-    async addMember(groupId, data, invitedBy) {
-        const query = `
-      INSERT INTO group_members (group_id, member_id, role, invited_by, notes)
-      VALUES ($1, $2, $3, $4, $5)
-      ON CONFLICT (group_id, member_id) 
-      DO UPDATE SET role = $3, status = 'active', notes = $5
-      RETURNING *
-    `;
-        const values = [groupId, data.memberId, data.role || 'member', invitedBy, data.notes || null];
-        const result = await database_1.pool.query(query, values);
-        return this.getMemberById(groupId, result.rows[0].member_id);
-    }
     async removeMember(groupId, memberId) {
         const query = `DELETE FROM group_members WHERE group_id = $1 AND member_id = $2`;
         const result = await database_1.pool.query(query, [groupId, memberId]);
@@ -576,6 +527,271 @@ class GroupRepository {
     `;
         const result = await database_1.pool.query(query, [churchId, name, description, icon, color]);
         return result.rows[0];
+    }
+    async approveGroup(churchId, groupId, approvedBy) {
+        const query = `
+            UPDATE groups
+            SET 
+                approval_status = 'approved',
+                approved_by = $3,
+                approved_at = NOW(),
+                is_active = true,
+                updated_at = NOW()
+            WHERE id = $1 AND church_id = $2 AND approval_status = 'pending'
+            RETURNING *
+        `;
+        const result = await database_1.pool.query(query, [groupId, churchId, approvedBy]);
+        if (result.rowCount === 0) {
+            return null;
+        }
+        return this.findById(churchId, groupId);
+    }
+    async rejectGroup(churchId, groupId, rejectedBy, reason) {
+        const query = `
+            UPDATE groups
+            SET 
+                approval_status = 'rejected',
+                rejected_by = $3,
+                rejected_at = NOW(),
+                rejection_reason = $4,
+                is_active = false,
+                updated_at = NOW()
+            WHERE id = $1 AND church_id = $2 AND approval_status = 'pending'
+            RETURNING *
+        `;
+        const result = await database_1.pool.query(query, [groupId, churchId, rejectedBy, reason]);
+        if (result.rowCount === 0) {
+            return null;
+        }
+        return this.findById(churchId, groupId);
+    }
+    async getPendingGroups(churchId) {
+        const query = `
+            SELECT 
+                g.*,
+                gt.name as group_type_name,
+                gt.icon as group_type_icon,
+                gt.color as group_type_color,
+                l.first_name as leader_first_name,
+                l.last_name as leader_last_name,
+                l.email as leader_email,
+                u.first_name as created_by_first_name,
+                u.last_name as created_by_last_name
+            FROM groups g
+            LEFT JOIN group_types gt ON g.group_type_id = gt.id
+            LEFT JOIN members l ON g.leader_id = l.id
+            LEFT JOIN users u ON g.created_by = u.id
+            WHERE g.church_id = $1 
+              AND g.approval_status = 'pending'
+              AND g.deleted_at IS NULL
+            ORDER BY g.created_at DESC
+        `;
+        const result = await database_1.pool.query(query, [churchId]);
+        return result.rows.map(row => ({
+            ...row,
+            group_type: row.group_type_id ? {
+                id: row.group_type_id,
+                name: row.group_type_name,
+                icon: row.group_type_icon,
+                color: row.group_type_color,
+            } : null,
+            leader: row.leader_id ? {
+                id: row.leader_id,
+                first_name: row.leader_first_name,
+                last_name: row.leader_last_name,
+                email: row.leader_email,
+            } : null,
+            created_by_name: row.created_by_first_name && row.created_by_last_name
+                ? `${row.created_by_first_name} ${row.created_by_last_name}`
+                : null,
+        }));
+    }
+    // ============================================================================
+    // GROUP MEMBER APPROVAL METHODS
+    // ============================================================================
+    async approveGroupMember(groupId, memberId, approvedBy) {
+        const query = `
+            UPDATE group_members
+            SET 
+                approval_status = 'approved',
+                approved_by = $3,
+                approved_at = NOW(),
+                status = 'active',
+                updated_at = NOW()
+            WHERE group_id = $1 AND member_id = $2 AND approval_status = 'pending'
+            RETURNING *
+        `;
+        const result = await database_1.pool.query(query, [groupId, memberId, approvedBy]);
+        if (result.rowCount === 0) {
+            return null;
+        }
+        // Update group member count
+        await this.updateGroupMemberCount(groupId);
+        return this.getMemberById(groupId, memberId);
+    }
+    async rejectGroupMember(groupId, memberId, rejectedBy, reason) {
+        const query = `
+            UPDATE group_members
+            SET 
+                approval_status = 'rejected',
+                rejected_by = $3,
+                rejected_at = NOW(),
+                rejection_reason = $4,
+                status = 'inactive',
+                updated_at = NOW()
+            WHERE group_id = $1 AND member_id = $2 AND approval_status = 'pending'
+            RETURNING *
+        `;
+        const result = await database_1.pool.query(query, [groupId, memberId, rejectedBy, reason]);
+        if (result.rowCount === 0) {
+            return null;
+        }
+        return this.getMemberById(groupId, memberId);
+    }
+    async getPendingGroupMembers(churchId) {
+        const query = `
+            SELECT 
+                gm.*,
+                g.name as group_name,
+                m.first_name,
+                m.last_name,
+                m.email,
+                m.phone,
+                m.profile_image_url,
+                u.first_name as invited_by_first_name,
+                u.last_name as invited_by_last_name
+            FROM group_members gm
+            JOIN groups g ON gm.group_id = g.id
+            JOIN members m ON gm.member_id = m.id
+            LEFT JOIN users u ON gm.invited_by = u.id
+            WHERE g.church_id = $1 
+              AND gm.approval_status = 'pending'
+            ORDER BY gm.created_at DESC
+        `;
+        const result = await database_1.pool.query(query, [churchId]);
+        return result.rows.map(row => ({
+            ...row,
+            member: {
+                id: row.member_id,
+                first_name: row.first_name,
+                last_name: row.last_name,
+                email: row.email,
+                phone: row.phone,
+                profile_image_url: row.profile_image_url,
+            },
+            invited_by_name: row.invited_by_first_name && row.invited_by_last_name
+                ? `${row.invited_by_first_name} ${row.invited_by_last_name}`
+                : null,
+        }));
+    }
+    async getPendingGroupMembersByGroup(groupId) {
+        const query = `
+            SELECT 
+                gm.*,
+                m.first_name,
+                m.last_name,
+                m.email,
+                m.phone,
+                m.profile_image_url
+            FROM group_members gm
+            JOIN members m ON gm.member_id = m.id
+            WHERE gm.group_id = $1 
+              AND gm.approval_status = 'pending'
+            ORDER BY gm.created_at DESC
+        `;
+        const result = await database_1.pool.query(query, [groupId]);
+        return result.rows.map(row => ({
+            ...row,
+            member: {
+                id: row.member_id,
+                first_name: row.first_name,
+                last_name: row.last_name,
+                email: row.email,
+                phone: row.phone,
+                profile_image_url: row.profile_image_url,
+            },
+        }));
+    }
+    async getAllPendingApprovals(churchId) {
+        const [pendingGroups, pendingMembers] = await Promise.all([
+            this.getPendingGroups(churchId),
+            this.getPendingGroupMembers(churchId),
+        ]);
+        return {
+            pendingGroups,
+            pendingMembers,
+            totalPendingGroups: pendingGroups.length,
+            totalPendingMembers: pendingMembers.length,
+        };
+    }
+    async updateGroupMemberCount(groupId) {
+        const query = `
+            UPDATE groups
+            SET member_count = (
+                SELECT COUNT(*)
+                FROM group_members
+                WHERE group_id = $1 AND status = 'active' AND approval_status = 'approved'
+            )
+            WHERE id = $1
+        `;
+        await database_1.pool.query(query, [groupId]);
+    }
+    // Update create method to set pending status
+    async create(churchId, data, createdBy) {
+        const query = `
+            INSERT INTO groups (
+                church_id, name, description, group_type_id, leader_id, co_leader_id,
+                default_meeting_day, default_meeting_time, default_meeting_type,
+                default_location_type, default_location_address, default_location_city, default_location_notes,
+                default_online_platform, default_meeting_link, default_meeting_id, default_meeting_password,
+                cover_image_url, is_public, max_members, 
+                approval_status, is_active, created_by
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, 'pending', false, $21)
+            RETURNING *
+        `;
+        const values = [
+            churchId,
+            data.name,
+            data.description || null,
+            data.groupTypeId || null,
+            data.leaderId || null,
+            data.coLeaderId || null,
+            data.defaultMeetingDay || null,
+            data.defaultMeetingTime || null,
+            data.defaultMeetingType || 'physical',
+            data.defaultLocationType || 'church',
+            data.defaultLocationAddress || null,
+            data.defaultLocationCity || null,
+            data.defaultLocationNotes || null,
+            data.defaultOnlinePlatform || null,
+            data.defaultMeetingLink || null,
+            data.defaultMeetingId || null,
+            data.defaultMeetingPassword || null,
+            data.coverImageUrl || null,
+            data.isPublic !== false,
+            data.maxMembers || null,
+            createdBy || null,
+        ];
+        const result = await database_1.pool.query(query, values);
+        return this.findById(churchId, result.rows[0].id);
+    }
+    // Update addMember to set pending status
+    async addMember(groupId, data, invitedBy) {
+        const query = `
+            INSERT INTO group_members (group_id, member_id, role, invited_by, notes, approval_status, status)
+            VALUES ($1, $2, $3, $4, $5, 'pending', 'pending')
+            ON CONFLICT (group_id, member_id) 
+            DO UPDATE SET 
+                role = $3, 
+                approval_status = 'pending',
+                status = 'pending',
+                notes = $5,
+                updated_at = NOW()
+            RETURNING *
+        `;
+        const values = [groupId, data.memberId, data.role || 'member', invitedBy, data.notes || null];
+        const result = await database_1.pool.query(query, values);
+        return this.getMemberById(groupId, result.rows[0].member_id);
     }
     async findAllGroupTypes(churchId) {
         const query = `
