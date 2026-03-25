@@ -91,32 +91,62 @@ export class EmailService {
     // TRANSPORTER INITIALIZATION
     // ============================================================================
 
+    // src/services/EmailService.ts
+
     private initializeTransporter(): void {
         try {
             const host = process.env.SMTP_HOST;
-            const port = parseInt(process.env.SMTP_PORT || '587');
+            const port = parseInt(process.env.SMTP_PORT || '465');
+            const secure = process.env.SMTP_SECURE === 'true'; // true for 465, false for 587
             const user = process.env.SMTP_USER;
             const pass = process.env.SMTP_PASSWORD;
 
             if (!host || !user || !pass) {
-                logger.warn('SMTP credentials not configured. Email sending will be unavailable.');
+                logger.warn('⚠️  SMTP credentials not configured. Email sending will be unavailable.');
+                logger.warn('   Please set SMTP_HOST, SMTP_USER, and SMTP_PASSWORD in .env');
                 return;
             }
 
             this.transporter = nodemailer.createTransport({
                 host,
                 port,
-                secure: process.env.SMTP_SECURE === 'true',
-                auth: { user, pass },
+                secure, // true for 465 (SSL), false for 587 (TLS)
+                auth: {
+                    user,
+                    pass
+                },
+                // Connection pool settings for better performance
                 pool: true,
                 maxConnections: 5,
                 maxMessages: 100,
+                rateDelta: 1000,
                 rateLimit: 10,
+
+                // cPanel-specific settings
+                tls: {
+                    rejectUnauthorized: process.env.NODE_ENV === 'production',
+                    minVersion: 'TLSv1.2'
+                },
+
+                // Debug settings
+                debug: process.env.SMTP_DEBUG === 'true',
+                logger: process.env.SMTP_DEBUG === 'true'
             });
 
-            logger.info('SMTP transporter initialized successfully');
+            // Verify connection on startup
+            this.transporter.verify((error, success) => {
+                if (error) {
+                    logger.error('❌ SMTP connection failed:', error);
+                    logger.error(`   Host: ${host}:${port}, User: ${user}`);
+                } else {
+                    logger.info('✅ SMTP transporter initialized successfully');
+                    logger.info(`   Server: ${host}:${port} (${secure ? 'SSL' : 'TLS'})`);
+                    logger.info(`   From: ${process.env.SMTP_FROM_NAME} <${process.env.SMTP_FROM_EMAIL}>`);
+                }
+            });
+
         } catch (error) {
-            logger.error('Failed to initialize SMTP transporter:', error);
+            logger.error('❌ Failed to initialize SMTP transporter:', error);
         }
     }
 
@@ -125,6 +155,170 @@ export class EmailService {
             throw new AppError('Email service not configured. Check SMTP settings.', 503);
         }
         return this.transporter;
+    }
+
+    // src/services/EmailService.ts
+
+    /**
+     * Send Password Reset OTP
+     */
+    async sendPasswordResetOTP(email: string, otp: string, firstName: string): Promise<boolean> {
+        const result = await this.sendEmail({
+            to: email,
+            subject: 'Password Reset Verification Code',
+            html: `
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <meta charset="utf-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <title>Password Reset Code</title>
+            </head>
+            <body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #f5f5f5;">
+                <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f5f5f5; padding: 20px;">
+                    <tr>
+                        <td align="center">
+                            <table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                                <!-- Header -->
+                                <tr>
+                                    <td style="padding: 40px 40px 20px; text-align: center;">
+                                        <h1 style="margin: 0; color: #2563eb; font-size: 24px;">🔐 Password Reset</h1>
+                                    </td>
+                                </tr>
+                                
+                                <!-- Body -->
+                                <tr>
+                                    <td style="padding: 0 40px 40px;">
+                                        <p style="margin: 0 0 20px; color: #333; font-size: 16px; line-height: 1.6;">Hi ${firstName},</p>
+                                        <p style="margin: 0 0 20px; color: #666; font-size: 14px; line-height: 1.6;">
+                                            You requested to reset your password. Use the verification code below:
+                                        </p>
+                                        
+                                        <!-- OTP Code Box -->
+                                        <table width="100%" cellpadding="0" cellspacing="0" style="margin: 30px 0;">
+                                            <tr>
+                                                <td align="center">
+                                                    <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 12px; padding: 20px; display: inline-block;">
+                                                        <p style="margin: 0; color: #ffffff; font-size: 14px; font-weight: 500; text-transform: uppercase; letter-spacing: 1px;">Your Verification Code</p>
+                                                        <p style="margin: 10px 0 0; color: #ffffff; font-size: 42px; font-weight: bold; letter-spacing: 8px; font-family: 'Courier New', monospace;">${otp}</p>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        </table>
+                                        
+                                        <p style="margin: 20px 0 0; color: #666; font-size: 14px; text-align: center;">
+                                            This code will expire in <strong style="color: #2563eb;">10 minutes</strong>.
+                                        </p>
+                                        
+                                        <!-- Warning -->
+                                        <div style="background-color: #fef2f2; border-left: 4px solid #ef4444; padding: 15px; margin-top: 30px; border-radius: 4px;">
+                                            <p style="margin: 0; color: #991b1b; font-size: 13px;">
+                                                <strong>⚠️ Security Alert:</strong> If you did not request this code, please ignore this email or contact support immediately.
+                                            </p>
+                                        </div>
+                                    </td>
+                                </tr>
+                                
+                                <!-- Footer -->
+                                <tr>
+                                    <td style="padding: 20px 40px; background-color: #f9fafb; border-radius: 0 0 8px 8px; text-align: center;">
+                                        <p style="margin: 0; color: #9ca3af; font-size: 12px;">
+                                            This is an automated message. Please do not reply to this email.
+                                        </p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                </table>
+            </body>
+            </html>
+        `,
+            text: `Hi ${firstName},\n\nYou requested to reset your password. Your verification code is: ${otp}\n\nThis code will expire in 10 minutes.\n\nIf you did not request this, please ignore this email.`
+        });
+
+        return result.success;
+    }
+
+    /**
+     * Send Email Verification OTP
+     */
+    async sendEmailVerificationOTP(email: string, otp: string, firstName: string): Promise<boolean> {
+        const result = await this.sendEmail({
+            to: email,
+            subject: 'Verify Your Email Address',
+            html: `
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <meta charset="utf-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <title>Email Verification</title>
+            </head>
+            <body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #f5f5f5;">
+                <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f5f5f5; padding: 20px;">
+                    <tr>
+                        <td align="center">
+                            <table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                                <!-- Header -->
+                                <tr>
+                                    <td style="padding: 40px 40px 20px; text-align: center;">
+                                        <h1 style="margin: 0; color: #10b981; font-size: 24px;">✉️ Verify Your Email</h1>
+                                    </td>
+                                </tr>
+                                
+                                <!-- Body -->
+                                <tr>
+                                    <td style="padding: 0 40px 40px;">
+                                        <p style="margin: 0 0 20px; color: #333; font-size: 16px; line-height: 1.6;">Hi ${firstName},</p>
+                                        <p style="margin: 0 0 20px; color: #666; font-size: 14px; line-height: 1.6;">
+                                            Thank you for registering! To complete your registration, please verify your email address using the code below:
+                                        </p>
+                                        
+                                        <!-- OTP Code Box -->
+                                        <table width="100%" cellpadding="0" cellspacing="0" style="margin: 30px 0;">
+                                            <tr>
+                                                <td align="center">
+                                                    <div style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); border-radius: 12px; padding: 20px; display: inline-block;">
+                                                        <p style="margin: 0; color: #ffffff; font-size: 14px; font-weight: 500; text-transform: uppercase; letter-spacing: 1px;">Verification Code</p>
+                                                        <p style="margin: 10px 0 0; color: #ffffff; font-size: 42px; font-weight: bold; letter-spacing: 8px; font-family: 'Courier New', monospace;">${otp}</p>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        </table>
+                                        
+                                        <p style="margin: 20px 0 0; color: #666; font-size: 14px; text-align: center;">
+                                            This code will expire in <strong style="color: #10b981;">10 minutes</strong>.
+                                        </p>
+                                        
+                                        <!-- Info Box -->
+                                        <div style="background-color: #eff6ff; border-left: 4px solid #3b82f6; padding: 15px; margin-top: 30px; border-radius: 4px;">
+                                            <p style="margin: 0; color: #1e40af; font-size: 13px;">
+                                                <strong>ℹ️ Why verify?</strong> Email verification helps us ensure account security and enables important notifications.
+                                            </p>
+                                        </div>
+                                    </td>
+                                </tr>
+                                
+                                <!-- Footer -->
+                                <tr>
+                                    <td style="padding: 20px 40px; background-color: #f9fafb; border-radius: 0 0 8px 8px; text-align: center;">
+                                        <p style="margin: 0; color: #9ca3af; font-size: 12px;">
+                                            This is an automated message. Please do not reply to this email.
+                                        </p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                </table>
+            </body>
+            </html>
+        `,
+            text: `Hi ${firstName},\n\nThank you for registering! Your email verification code is: ${otp}\n\nThis code will expire in 10 minutes.`
+        });
+
+        return result.success;
     }
 
     // ============================================================================
@@ -1112,6 +1306,374 @@ export class EmailService {
         logger.info(`Profile update link email sent to ${to}`);
     }
 
+    // src/services/EmailService.ts
+
+    /**
+     * Send Staff Invitation Email (First Time)
+     */
+    async sendStaffInvitation(
+        email: string,
+        data: {
+            firstName: string;
+            lastName: string;
+            churchName: string;
+            temporaryPassword: string;
+            role: string;
+        }
+    ): Promise<boolean> {
+        const loginUrl = `${process.env.FRONTEND_URL || 'http://localhost:8080'}/login`;
+        const roleDisplay = this.getRoleDisplayName(data.role);
+
+        const result = await this.sendEmail({
+            to: email,
+            subject: `Welcome to ${data.churchName} - Your Account Details`,
+            html: `
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <meta charset="utf-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <title>Welcome to ${data.churchName}</title>
+            </head>
+            <body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #f5f5f5;">
+                <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f5f5f5; padding: 20px;">
+                    <tr>
+                        <td align="center">
+                            <table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                                <!-- Header with Church Branding -->
+                                <tr>
+                                    <td style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 40px; text-align: center; border-radius: 8px 8px 0 0;">
+                                        <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: bold;">👋 Welcome!</h1>
+                                        <p style="margin: 10px 0 0; color: #e0e7ff; font-size: 16px;">${data.churchName}</p>
+                                    </td>
+                                </tr>
+                                
+                                <!-- Body Content -->
+                                <tr>
+                                    <td style="padding: 40px;">
+                                        <p style="margin: 0 0 20px; color: #333; font-size: 16px; line-height: 1.6;">
+                                            Dear <strong>${data.firstName} ${data.lastName}</strong>,
+                                        </p>
+                                        
+                                        <p style="margin: 0 0 20px; color: #666; font-size: 14px; line-height: 1.6;">
+                                            We're excited to have you join our team at <strong>${data.churchName}</strong>! 
+                                            You have been added as a <strong>${roleDisplay}</strong> and your account is now ready.
+                                        </p>
+                                        
+                                        <!-- Credentials Box -->
+                                        <div style="background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%); border-left: 4px solid #3b82f6; padding: 20px; margin: 30px 0; border-radius: 6px;">
+                                            <p style="margin: 0 0 15px; color: #1e40af; font-size: 14px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">
+                                                🔐 Your Login Credentials
+                                            </p>
+                                            <table width="100%" cellpadding="8" cellspacing="0">
+                                                <tr>
+                                                    <td style="color: #475569; font-size: 14px; font-weight: 600; padding: 8px 0;">Email:</td>
+                                                    <td style="color: #1e293b; font-size: 14px; padding: 8px 0;"><code style="background: #f1f5f9; padding: 4px 8px; border-radius: 4px; font-family: 'Courier New', monospace;">${email}</code></td>
+                                                </tr>
+                                                <tr>
+                                                    <td style="color: #475569; font-size: 14px; font-weight: 600; padding: 8px 0;">Temporary Password:</td>
+                                                    <td style="color: #1e293b; font-size: 14px; padding: 8px 0;"><code style="background: #fef3c7; padding: 4px 8px; border-radius: 4px; font-family: 'Courier New', monospace; font-weight: bold;">${data.temporaryPassword}</code></td>
+                                                </tr>
+                                                <tr>
+                                                    <td style="color: #475569; font-size: 14px; font-weight: 600; padding: 8px 0;">Role:</td>
+                                                    <td style="color: #1e293b; font-size: 14px; padding: 8px 0;"><span style="background: #dbeafe; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 600; color: #1e40af;">${roleDisplay}</span></td>
+                                                </tr>
+                                            </table>
+                                        </div>
+                                        
+                                        <!-- Login Button -->
+                                        <table width="100%" cellpadding="0" cellspacing="0" style="margin: 30px 0;">
+                                            <tr>
+                                                <td align="center">
+                                                    <a href="${loginUrl}" style="display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #ffffff; text-decoration: none; padding: 14px 40px; border-radius: 8px; font-size: 16px; font-weight: 600; box-shadow: 0 4px 6px rgba(102, 126, 234, 0.3);">
+                                                        Login to Your Account →
+                                                    </a>
+                                                </td>
+                                            </tr>
+                                        </table>
+                                        
+                                        <!-- Important Notice -->
+                                        <div style="background-color: #fef2f2; border-left: 4px solid #ef4444; padding: 15px; margin: 30px 0; border-radius: 4px;">
+                                            <p style="margin: 0; color: #991b1b; font-size: 13px; line-height: 1.5;">
+                                                <strong>⚠️ Important:</strong> For security reasons, you will be required to change your password upon first login. 
+                                                Please keep this email secure and do not share your credentials with anyone.
+                                            </p>
+                                        </div>
+                                        
+                                        <!-- Next Steps -->
+                                        <div style="margin-top: 30px;">
+                                            <p style="margin: 0 0 15px; color: #333; font-size: 15px; font-weight: 600;">📋 Next Steps:</p>
+                                            <ul style="margin: 0; padding-left: 20px; color: #666; font-size: 14px; line-height: 1.8;">
+                                                <li>Click the login button above or visit <a href="${loginUrl}" style="color: #3b82f6; text-decoration: none;">${loginUrl}</a></li>
+                                                <li>Enter your email and temporary password</li>
+                                                <li>Create a new secure password</li>
+                                                <li>Complete your profile setup</li>
+                                                <li>Start managing your responsibilities</li>
+                                            </ul>
+                                        </div>
+                                        
+                                        <!-- Support Section -->
+                                        <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
+                                            <p style="margin: 0 0 10px; color: #666; font-size: 13px;">
+                                                Need help getting started? Contact your church administrator or reply to this email.
+                                            </p>
+                                            <p style="margin: 0; color: #666; font-size: 13px;">
+                                                We're here to support you every step of the way! 🙏
+                                            </p>
+                                        </div>
+                                    </td>
+                                </tr>
+                                
+                                <!-- Footer -->
+                                <tr>
+                                    <td style="padding: 20px 40px; background-color: #f9fafb; border-radius: 0 0 8px 8px; text-align: center;">
+                                        <p style="margin: 0 0 5px; color: #6b7280; font-size: 12px;">
+                                            This email was sent by ${data.churchName}
+                                        </p>
+                                        <p style="margin: 0; color: #9ca3af; font-size: 11px;">
+                                            © ${new Date().getFullYear()} ${data.churchName}. All rights reserved.
+                                        </p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                </table>
+            </body>
+            </html>
+        `,
+            text: `
+Welcome to ${data.churchName}!
+
+Dear ${data.firstName} ${data.lastName},
+
+We're excited to have you join our team! You have been added as a ${roleDisplay}.
+
+YOUR LOGIN CREDENTIALS:
+Email: ${email}
+Temporary Password: ${data.temporaryPassword}
+Role: ${roleDisplay}
+
+NEXT STEPS:
+1. Visit ${loginUrl}
+2. Login with your credentials
+3. Change your password
+4. Complete your profile
+
+For security reasons, you will be required to change your password upon first login.
+
+Need help? Contact your church administrator.
+
+Blessings,
+${data.churchName} Team
+        `
+        });
+
+        return result.success;
+    }
+
+    /**
+     * Resend Staff Invitation Email (With New Password)
+     */
+    async resendStaffInvitation(
+        email: string,
+        data: {
+            firstName: string;
+            lastName: string;
+            churchName: string;
+            temporaryPassword: string;
+            role: string;
+        }
+    ): Promise<boolean> {
+        const loginUrl = `${process.env.FRONTEND_URL || 'http://localhost:8080'}/login`;
+        const roleDisplay = this.getRoleDisplayName(data.role);
+
+        const result = await this.sendEmail({
+            to: email,
+            subject: `${data.churchName} - New Login Credentials`,
+            html: `
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <meta charset="utf-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <title>New Login Credentials - ${data.churchName}</title>
+            </head>
+            <body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #f5f5f5;">
+                <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f5f5f5; padding: 20px;">
+                    <tr>
+                        <td align="center">
+                            <table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                                <!-- Header -->
+                                <tr>
+                                    <td style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); padding: 40px; text-align: center; border-radius: 8px 8px 0 0;">
+                                        <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: bold;">🔄 New Credentials</h1>
+                                        <p style="margin: 10px 0 0; color: #fef3c7; font-size: 16px;">${data.churchName}</p>
+                                    </td>
+                                </tr>
+                                
+                                <!-- Body Content -->
+                                <tr>
+                                    <td style="padding: 40px;">
+                                        <p style="margin: 0 0 20px; color: #333; font-size: 16px; line-height: 1.6;">
+                                            Dear <strong>${data.firstName} ${data.lastName}</strong>,
+                                        </p>
+                                        
+                                        <p style="margin: 0 0 20px; color: #666; font-size: 14px; line-height: 1.6;">
+                                            Your login invitation for <strong>${data.churchName}</strong> has been resent with new credentials. 
+                                            You can now access your account as a <strong>${roleDisplay}</strong>.
+                                        </p>
+                                        
+                                        <!-- Info Banner -->
+                                        <div style="background-color: #eff6ff; border-left: 4px solid #3b82f6; padding: 15px; margin: 20px 0; border-radius: 4px;">
+                                            <p style="margin: 0; color: #1e40af; font-size: 13px;">
+                                                <strong>ℹ️ Note:</strong> Your previous temporary password has been replaced with the new one below.
+                                            </p>
+                                        </div>
+                                        
+                                        <!-- New Credentials Box -->
+                                        <div style="background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); border-left: 4px solid #f59e0b; padding: 20px; margin: 30px 0; border-radius: 6px;">
+                                            <p style="margin: 0 0 15px; color: #92400e; font-size: 14px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">
+                                                🔐 Your New Login Credentials
+                                            </p>
+                                            <table width="100%" cellpadding="8" cellspacing="0">
+                                                <tr>
+                                                    <td style="color: #78350f; font-size: 14px; font-weight: 600; padding: 8px 0;">Email:</td>
+                                                    <td style="color: #451a03; font-size: 14px; padding: 8px 0;"><code style="background: #ffffff; padding: 4px 8px; border-radius: 4px; font-family: 'Courier New', monospace;">${email}</code></td>
+                                                </tr>
+                                                <tr>
+                                                    <td style="color: #78350f; font-size: 14px; font-weight: 600; padding: 8px 0;">New Password:</td>
+                                                    <td style="color: #451a03; font-size: 14px; padding: 8px 0;"><code style="background: #ffffff; padding: 4px 8px; border-radius: 4px; font-family: 'Courier New', monospace; font-weight: bold; color: #dc2626;">${data.temporaryPassword}</code></td>
+                                                </tr>
+                                                <tr>
+                                                    <td style="color: #78350f; font-size: 14px; font-weight: 600; padding: 8px 0;">Role:</td>
+                                                    <td style="color: #451a03; font-size: 14px; padding: 8px 0;"><span style="background: #fef3c7; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 600; color: #92400e;">${roleDisplay}</span></td>
+                                                </tr>
+                                            </table>
+                                        </div>
+                                        
+                                        <!-- Login Button -->
+                                        <table width="100%" cellpadding="0" cellspacing="0" style="margin: 30px 0;">
+                                            <tr>
+                                                <td align="center">
+                                                    <a href="${loginUrl}" style="display: inline-block; background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: #ffffff; text-decoration: none; padding: 14px 40px; border-radius: 8px; font-size: 16px; font-weight: 600; box-shadow: 0 4px 6px rgba(245, 158, 11, 0.3);">
+                                                        Login Now →
+                                                    </a>
+                                                </td>
+                                            </tr>
+                                        </table>
+                                        
+                                        <!-- Security Warning -->
+                                        <div style="background-color: #fef2f2; border-left: 4px solid #ef4444; padding: 15px; margin: 30px 0; border-radius: 4px;">
+                                            <p style="margin: 0 0 10px; color: #991b1b; font-size: 13px; line-height: 1.5; font-weight: 600;">
+                                                🔒 Security Reminder:
+                                            </p>
+                                            <ul style="margin: 0; padding-left: 20px; color: #991b1b; font-size: 12px; line-height: 1.6;">
+                                                <li>You must change this password after your first login</li>
+                                                <li>Do not share your credentials with anyone</li>
+                                                <li>Keep this email secure or delete it after changing your password</li>
+                                            </ul>
+                                        </div>
+                                        
+                                        <!-- Quick Access Info -->
+                                        <div style="margin-top: 30px;">
+                                            <p style="margin: 0 0 10px; color: #333; font-size: 15px; font-weight: 600;">🚀 Quick Start:</p>
+                                            <ol style="margin: 0; padding-left: 20px; color: #666; font-size: 14px; line-height: 1.8;">
+                                                <li>Click "Login Now" above</li>
+                                                <li>Enter your email and new password</li>
+                                                <li>Create a secure personal password</li>
+                                                <li>Access your dashboard</li>
+                                            </ol>
+                                        </div>
+                                        
+                                        <!-- Support -->
+                                        <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
+                                            <p style="margin: 0 0 10px; color: #666; font-size: 13px;">
+                                                <strong>Still having trouble?</strong> Contact your church administrator for assistance.
+                                            </p>
+                                            <p style="margin: 0; color: #666; font-size: 13px;">
+                                                Login URL: <a href="${loginUrl}" style="color: #3b82f6; text-decoration: none;">${loginUrl}</a>
+                                            </p>
+                                        </div>
+                                    </td>
+                                </tr>
+                                
+                                <!-- Footer -->
+                                <tr>
+                                    <td style="padding: 20px 40px; background-color: #f9fafb; border-radius: 0 0 8px 8px; text-align: center;">
+                                        <p style="margin: 0 0 5px; color: #6b7280; font-size: 12px;">
+                                            Invitation resent by ${data.churchName}
+                                        </p>
+                                        <p style="margin: 0; color: #9ca3af; font-size: 11px;">
+                                            © ${new Date().getFullYear()} ${data.churchName}. All rights reserved.
+                                        </p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                </table>
+            </body>
+            </html>
+        `,
+            text: `
+New Login Credentials - ${data.churchName}
+
+Dear ${data.firstName} ${data.lastName},
+
+Your login invitation has been resent with new credentials.
+
+YOUR NEW LOGIN CREDENTIALS:
+Email: ${email}
+New Password: ${data.temporaryPassword}
+Role: ${roleDisplay}
+
+IMPORTANT: Your previous temporary password has been replaced.
+
+LOGIN STEPS:
+1. Visit ${loginUrl}
+2. Login with your new credentials
+3. Change your password
+4. Access your dashboard
+
+For security, you must change this password after first login.
+
+Need help? Contact your church administrator.
+
+Blessings,
+${data.churchName} Team
+        `
+        });
+
+        return result.success;
+    }
+
+    /**
+     * Helper: Get Role Display Name
+     */
+    private getRoleDisplayName(role: string): string {
+        const roleMap: Record<string, string> = {
+            'admin': 'Administrator',
+            'pastor': 'Pastor',
+            'associate_pastor': 'Associate Pastor',
+            'worship_leader': 'Worship Leader',
+            'youth_pastor': 'Youth Pastor',
+            'children_minister': 'Children\'s Minister',
+            'finance_officer': 'Finance Officer',
+            'secretary': 'Secretary',
+            'head_usher': 'Head Usher',
+            'head_choir': 'Choir Director',
+            'media_director': 'Media Director',
+            'outreach_coordinator': 'Outreach Coordinator',
+            'staff': 'Staff Member',
+            'volunteer_leader': 'Volunteer Leader',
+            'leader': 'Leader',
+            'member': 'Member',
+            'volunteer': 'Volunteer'
+        };
+        return roleMap[role] || role.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+    }
+
     // ============================================================================
     // SEND PASSWORD RESET EMAIL
     // ============================================================================
@@ -1153,6 +1715,7 @@ export class EmailService {
         logger.info(`Password reset email sent to ${to}`);
     }
 }
+
 
 // ============================================================================
 // SINGLETON EXPORT (for NotificationController and other consumers)

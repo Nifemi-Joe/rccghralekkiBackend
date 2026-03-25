@@ -27,30 +27,57 @@ class EmailService {
     // ============================================================================
     // TRANSPORTER INITIALIZATION
     // ============================================================================
+    // src/services/EmailService.ts
     initializeTransporter() {
         try {
             const host = process.env.SMTP_HOST;
-            const port = parseInt(process.env.SMTP_PORT || '587');
+            const port = parseInt(process.env.SMTP_PORT || '465');
+            const secure = process.env.SMTP_SECURE === 'true'; // true for 465, false for 587
             const user = process.env.SMTP_USER;
             const pass = process.env.SMTP_PASSWORD;
             if (!host || !user || !pass) {
-                logger_1.default.warn('SMTP credentials not configured. Email sending will be unavailable.');
+                logger_1.default.warn('⚠️  SMTP credentials not configured. Email sending will be unavailable.');
+                logger_1.default.warn('   Please set SMTP_HOST, SMTP_USER, and SMTP_PASSWORD in .env');
                 return;
             }
             this.transporter = nodemailer_1.default.createTransport({
                 host,
                 port,
-                secure: process.env.SMTP_SECURE === 'true',
-                auth: { user, pass },
+                secure, // true for 465 (SSL), false for 587 (TLS)
+                auth: {
+                    user,
+                    pass
+                },
+                // Connection pool settings for better performance
                 pool: true,
                 maxConnections: 5,
                 maxMessages: 100,
+                rateDelta: 1000,
                 rateLimit: 10,
+                // cPanel-specific settings
+                tls: {
+                    rejectUnauthorized: process.env.NODE_ENV === 'production',
+                    minVersion: 'TLSv1.2'
+                },
+                // Debug settings
+                debug: process.env.SMTP_DEBUG === 'true',
+                logger: process.env.SMTP_DEBUG === 'true'
             });
-            logger_1.default.info('SMTP transporter initialized successfully');
+            // Verify connection on startup
+            this.transporter.verify((error, success) => {
+                if (error) {
+                    logger_1.default.error('❌ SMTP connection failed:', error);
+                    logger_1.default.error(`   Host: ${host}:${port}, User: ${user}`);
+                }
+                else {
+                    logger_1.default.info('✅ SMTP transporter initialized successfully');
+                    logger_1.default.info(`   Server: ${host}:${port} (${secure ? 'SSL' : 'TLS'})`);
+                    logger_1.default.info(`   From: ${process.env.SMTP_FROM_NAME} <${process.env.SMTP_FROM_EMAIL}>`);
+                }
+            });
         }
         catch (error) {
-            logger_1.default.error('Failed to initialize SMTP transporter:', error);
+            logger_1.default.error('❌ Failed to initialize SMTP transporter:', error);
         }
     }
     getTransporter() {
@@ -58,6 +85,165 @@ class EmailService {
             throw new AppError_1.AppError('Email service not configured. Check SMTP settings.', 503);
         }
         return this.transporter;
+    }
+    // src/services/EmailService.ts
+    /**
+     * Send Password Reset OTP
+     */
+    async sendPasswordResetOTP(email, otp, firstName) {
+        const result = await this.sendEmail({
+            to: email,
+            subject: 'Password Reset Verification Code',
+            html: `
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <meta charset="utf-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <title>Password Reset Code</title>
+            </head>
+            <body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #f5f5f5;">
+                <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f5f5f5; padding: 20px;">
+                    <tr>
+                        <td align="center">
+                            <table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                                <!-- Header -->
+                                <tr>
+                                    <td style="padding: 40px 40px 20px; text-align: center;">
+                                        <h1 style="margin: 0; color: #2563eb; font-size: 24px;">🔐 Password Reset</h1>
+                                    </td>
+                                </tr>
+                                
+                                <!-- Body -->
+                                <tr>
+                                    <td style="padding: 0 40px 40px;">
+                                        <p style="margin: 0 0 20px; color: #333; font-size: 16px; line-height: 1.6;">Hi ${firstName},</p>
+                                        <p style="margin: 0 0 20px; color: #666; font-size: 14px; line-height: 1.6;">
+                                            You requested to reset your password. Use the verification code below:
+                                        </p>
+                                        
+                                        <!-- OTP Code Box -->
+                                        <table width="100%" cellpadding="0" cellspacing="0" style="margin: 30px 0;">
+                                            <tr>
+                                                <td align="center">
+                                                    <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 12px; padding: 20px; display: inline-block;">
+                                                        <p style="margin: 0; color: #ffffff; font-size: 14px; font-weight: 500; text-transform: uppercase; letter-spacing: 1px;">Your Verification Code</p>
+                                                        <p style="margin: 10px 0 0; color: #ffffff; font-size: 42px; font-weight: bold; letter-spacing: 8px; font-family: 'Courier New', monospace;">${otp}</p>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        </table>
+                                        
+                                        <p style="margin: 20px 0 0; color: #666; font-size: 14px; text-align: center;">
+                                            This code will expire in <strong style="color: #2563eb;">10 minutes</strong>.
+                                        </p>
+                                        
+                                        <!-- Warning -->
+                                        <div style="background-color: #fef2f2; border-left: 4px solid #ef4444; padding: 15px; margin-top: 30px; border-radius: 4px;">
+                                            <p style="margin: 0; color: #991b1b; font-size: 13px;">
+                                                <strong>⚠️ Security Alert:</strong> If you did not request this code, please ignore this email or contact support immediately.
+                                            </p>
+                                        </div>
+                                    </td>
+                                </tr>
+                                
+                                <!-- Footer -->
+                                <tr>
+                                    <td style="padding: 20px 40px; background-color: #f9fafb; border-radius: 0 0 8px 8px; text-align: center;">
+                                        <p style="margin: 0; color: #9ca3af; font-size: 12px;">
+                                            This is an automated message. Please do not reply to this email.
+                                        </p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                </table>
+            </body>
+            </html>
+        `,
+            text: `Hi ${firstName},\n\nYou requested to reset your password. Your verification code is: ${otp}\n\nThis code will expire in 10 minutes.\n\nIf you did not request this, please ignore this email.`
+        });
+        return result.success;
+    }
+    /**
+     * Send Email Verification OTP
+     */
+    async sendEmailVerificationOTP(email, otp, firstName) {
+        const result = await this.sendEmail({
+            to: email,
+            subject: 'Verify Your Email Address',
+            html: `
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <meta charset="utf-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <title>Email Verification</title>
+            </head>
+            <body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #f5f5f5;">
+                <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f5f5f5; padding: 20px;">
+                    <tr>
+                        <td align="center">
+                            <table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                                <!-- Header -->
+                                <tr>
+                                    <td style="padding: 40px 40px 20px; text-align: center;">
+                                        <h1 style="margin: 0; color: #10b981; font-size: 24px;">✉️ Verify Your Email</h1>
+                                    </td>
+                                </tr>
+                                
+                                <!-- Body -->
+                                <tr>
+                                    <td style="padding: 0 40px 40px;">
+                                        <p style="margin: 0 0 20px; color: #333; font-size: 16px; line-height: 1.6;">Hi ${firstName},</p>
+                                        <p style="margin: 0 0 20px; color: #666; font-size: 14px; line-height: 1.6;">
+                                            Thank you for registering! To complete your registration, please verify your email address using the code below:
+                                        </p>
+                                        
+                                        <!-- OTP Code Box -->
+                                        <table width="100%" cellpadding="0" cellspacing="0" style="margin: 30px 0;">
+                                            <tr>
+                                                <td align="center">
+                                                    <div style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); border-radius: 12px; padding: 20px; display: inline-block;">
+                                                        <p style="margin: 0; color: #ffffff; font-size: 14px; font-weight: 500; text-transform: uppercase; letter-spacing: 1px;">Verification Code</p>
+                                                        <p style="margin: 10px 0 0; color: #ffffff; font-size: 42px; font-weight: bold; letter-spacing: 8px; font-family: 'Courier New', monospace;">${otp}</p>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        </table>
+                                        
+                                        <p style="margin: 20px 0 0; color: #666; font-size: 14px; text-align: center;">
+                                            This code will expire in <strong style="color: #10b981;">10 minutes</strong>.
+                                        </p>
+                                        
+                                        <!-- Info Box -->
+                                        <div style="background-color: #eff6ff; border-left: 4px solid #3b82f6; padding: 15px; margin-top: 30px; border-radius: 4px;">
+                                            <p style="margin: 0; color: #1e40af; font-size: 13px;">
+                                                <strong>ℹ️ Why verify?</strong> Email verification helps us ensure account security and enables important notifications.
+                                            </p>
+                                        </div>
+                                    </td>
+                                </tr>
+                                
+                                <!-- Footer -->
+                                <tr>
+                                    <td style="padding: 20px 40px; background-color: #f9fafb; border-radius: 0 0 8px 8px; text-align: center;">
+                                        <p style="margin: 0; color: #9ca3af; font-size: 12px;">
+                                            This is an automated message. Please do not reply to this email.
+                                        </p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                </table>
+            </body>
+            </html>
+        `,
+            text: `Hi ${firstName},\n\nThank you for registering! Your email verification code is: ${otp}\n\nThis code will expire in 10 minutes.`
+        });
+        return result.success;
     }
     // ============================================================================
     // TRANSACTIONAL EMAIL METHODS (used by NotificationController)

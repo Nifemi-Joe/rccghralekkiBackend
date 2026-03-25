@@ -51,6 +51,14 @@ export declare class EmailService {
     constructor();
     private initializeTransporter;
     private getTransporter;
+    /**
+     * Send Password Reset OTP
+     */
+    sendPasswordResetOTP(email: string, otp: string, firstName: string): Promise<boolean>;
+    /**
+     * Send Email Verification OTP
+     */
+    sendEmailVerificationOTP(email: string, otp: string, firstName: string): Promise<boolean>;
     sendEmail(options: SendEmailOptions): Promise<SendEmailResult>;
     sendBulkEmail(options: BulkEmailOptions): Promise<BulkEmailResult>;
     verifyConnection(): Promise<boolean>;
