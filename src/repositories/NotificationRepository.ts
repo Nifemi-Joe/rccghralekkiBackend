@@ -20,7 +20,7 @@ export class NotificationRepository {
                 data, actor_id, actor_name
             )
             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
-            RETURNING *
+                RETURNING *
         `;
 
         const values = [
@@ -56,7 +56,7 @@ export class NotificationRepository {
                         data, actor_id, actor_name
                     )
                     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
-                    RETURNING *
+                        RETURNING *
                 `;
 
                 const values = [
@@ -149,7 +149,9 @@ export class NotificationRepository {
         const total = parseInt(countResult.rows[0].count);
 
         // Unread count
-        const unreadQuery = `SELECT COUNT(*) FROM notifications n ${whereClause} AND n.is_read = false`;
+        const unreadQuery = `
+            SELECT COUNT(*) FROM notifications n ${whereClause} AND n.is_read = false
+        `;
         const unreadResult = await pool.query(unreadQuery, values);
         const unreadCount = parseInt(unreadResult.rows[0].count);
 
@@ -161,9 +163,9 @@ export class NotificationRepository {
         const dataQuery = `
             SELECT n.*
             FROM notifications n
-            ${whereClause}
+                ${whereClause}
             ORDER BY n.created_at DESC
-            LIMIT $${paramCount + 1} OFFSET $${paramCount + 2}
+                LIMIT $${paramCount + 1} OFFSET $${paramCount + 2}
         `;
 
         values.push(limit, offset);
@@ -186,7 +188,7 @@ export class NotificationRepository {
             UPDATE notifications
             SET is_read = true, read_at = NOW(), updated_at = NOW()
             WHERE id = $1 AND church_id = $2
-            RETURNING *
+                RETURNING *
         `;
         const result = await pool.query(query, [id, churchId]);
         return result.rows[0] || null;
@@ -219,13 +221,17 @@ export class NotificationRepository {
 
     async deleteOld(churchId: string, daysOld: number = 30): Promise<number> {
         const result = await pool.query(
-            `DELETE FROM notifications 
+            `DELETE FROM notifications
              WHERE church_id = $1 AND created_at < NOW() - INTERVAL '${daysOld} days'`,
             [churchId]
         );
         return result.rowCount || 0;
     }
 
+    /**
+     * Fixed: now returns all fields required by NotificationStats
+     * (total, unread, byType, byPriority, recentCount).
+     */
     async getStats(churchId: string, userId?: string): Promise<NotificationStats> {
         let whereClause = 'WHERE church_id = $1';
         const values: any[] = [churchId];
@@ -235,36 +241,75 @@ export class NotificationRepository {
             values.push(userId);
         }
 
-        const query = `
-            SELECT 
-                COUNT(*) as total,
-                COUNT(*) FILTER (WHERE is_read = false) as unread,
-                jsonb_object_agg(type, type_count) as by_type
-            FROM (
-                SELECT type, COUNT(*) as type_count
-                FROM notifications
-                ${whereClause}
-                GROUP BY type
-            ) t
-            CROSS JOIN (
-                SELECT COUNT(*) as total, COUNT(*) FILTER (WHERE is_read = false) as unread
-                FROM notifications
-                ${whereClause}
-            ) s
+        // ── Totals (total + unread) ───────────────────────────────────────────
+        const totalsQuery = `
+            SELECT
+                COUNT(*)                                      AS total,
+                COUNT(*) FILTER (WHERE is_read = false)       AS unread
+            FROM notifications
+            ${whereClause}
         `;
+        const totalsResult = await pool.query(totalsQuery, values);
+        const totalsRow = totalsResult.rows[0];
 
-        const result = await pool.query(query, values);
-        const row = result.rows[0];
+        // ── By-type breakdown ─────────────────────────────────────────────────
+        const byTypeQuery = `
+            SELECT type, COUNT(*) AS cnt
+            FROM notifications
+            ${whereClause}
+            GROUP BY type
+        `;
+        const byTypeResult = await pool.query(byTypeQuery, values);
+        const byType: Record<string, number> = {};
+        for (const row of byTypeResult.rows) {
+            byType[row.type] = parseInt(row.cnt, 10);
+        }
+
+        // ── By-priority breakdown ─────────────────────────────────────────────
+        // (assumes a `priority` column; falls back gracefully if absent)
+        const byPriority: Record<string, number> = {};
+        try {
+            const byPriorityQuery = `
+                SELECT priority, COUNT(*) AS cnt
+                FROM notifications
+                ${whereClause}
+                GROUP BY priority
+            `;
+            const byPriorityResult = await pool.query(byPriorityQuery, values);
+            for (const row of byPriorityResult.rows) {
+                byPriority[row.priority ?? 'none'] = parseInt(row.cnt, 10);
+            }
+        } catch {
+            // column may not exist yet — leave byPriority as empty object
+        }
+
+        // ── Recent count (last 24 hours) ──────────────────────────────────────
+        let recentCount = 0;
+        try {
+            const recentQuery = `
+                SELECT COUNT(*) AS cnt
+                FROM notifications
+                ${whereClause}
+                  AND created_at >= NOW() - INTERVAL '24 hours'
+            `;
+            const recentResult = await pool.query(recentQuery, values);
+            recentCount = parseInt(recentResult.rows[0]?.cnt ?? '0', 10);
+        } catch {
+            // safe default
+        }
 
         return {
-            total: parseInt(row?.total || 0),
-            unread: parseInt(row?.unread || 0),
-            byType: row?.by_type || {},
+            total: parseInt(totalsRow?.total ?? '0', 10),
+            unread: parseInt(totalsRow?.unread ?? '0', 10),
+            byType,
+            byPriority,
+            recentCount,
         };
     }
 
     async getUnreadCount(churchId: string, userId?: string): Promise<number> {
-        let query = 'SELECT COUNT(*) FROM notifications WHERE church_id = $1 AND is_read = false';
+        let query =
+            'SELECT COUNT(*) FROM notifications WHERE church_id = $1 AND is_read = false';
         const values: any[] = [churchId];
 
         if (userId) {

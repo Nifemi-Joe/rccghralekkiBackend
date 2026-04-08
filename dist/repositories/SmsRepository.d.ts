@@ -3,13 +3,19 @@ export declare class SmsRepository {
     /**
      * Find sender ID by church and sender name
      */
+    /**
+     * Return all campaigns with status = 'scheduled' whose scheduled_at
+     * timestamp is in the past (i.e. they are due to be sent now).
+     */
+    getDueScheduledCampaigns(): Promise<SmsCampaign[]>;
     findSenderIdByChurchAndName(churchId: string, senderId: string): Promise<SmsSenderId | null>;
     /**
      * UPSERT - Creates or updates sender ID atomically (Prevents duplicate key error)
      */
     createOrUpdateSenderId(churchId: string, data: CreateSenderIdDTO, createdBy?: string): Promise<SmsSenderId>;
     /**
-     * Legacy method - now delegates to UPSERT (kept for backward compatibility)
+     * Create sender ID - handles duplicates gracefully
+     * @deprecated Use createOrUpdateSenderId instead for better duplicate handling
      */
     createSenderId(churchId: string, data: CreateSenderIdDTO, createdBy?: string): Promise<SmsSenderId>;
     getSenderIds(churchId: string): Promise<SmsSenderId[]>;
@@ -82,7 +88,7 @@ export declare class SmsRepository {
     }>, createdBy?: string): Promise<SmsMessage[]>;
     getMessages(filters: SmsFilters): Promise<PaginatedMessages>;
     getMessagesByCampaign(campaignId: string): Promise<SmsMessage[]>;
-    updateMessageStatus(messageId: string, status: 'pending' | 'sent' | 'delivered' | 'failed' | 'rejected', externalId?: string, errorMessage?: string): Promise<SmsMessage | null>;
+    updateMessageStatus(messageId: string, status: string, externalId?: string, errorMessage?: string): Promise<SmsMessage | null>;
     createReply(churchId: string, data: {
         originalMessageId?: string;
         phoneNumber: string;

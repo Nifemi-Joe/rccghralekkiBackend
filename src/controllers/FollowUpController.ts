@@ -16,7 +16,7 @@ export class FollowUpController {
     // DEPARTMENT
     // ============================================================================
 
-    getDepartment = async (req: Request, res: Response, next: NextFunction) => {
+    getDepartment = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const churchId = req.user!.churchId;
             const department = await this.followUpService.getDepartment(churchId);
@@ -26,7 +26,7 @@ export class FollowUpController {
         }
     };
 
-    updateDepartmentSettings = async (req: Request, res: Response, next: NextFunction) => {
+    updateDepartmentSettings = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const churchId = req.user!.churchId;
             const department = await this.followUpService.updateDepartmentSettings(churchId, req.body);
@@ -40,7 +40,7 @@ export class FollowUpController {
     // MEMBERS
     // ============================================================================
 
-    getMembers = async (req: Request, res: Response, next: NextFunction) => {
+    getMembers = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const churchId = req.user!.churchId;
             const { search, status } = req.query;
@@ -56,7 +56,7 @@ export class FollowUpController {
         }
     };
 
-    addMember = async (req: Request, res: Response, next: NextFunction) => {
+    addMember = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const churchId = req.user!.churchId;
             const userId = req.user!.id;
@@ -68,7 +68,7 @@ export class FollowUpController {
         }
     };
 
-    updateMember = async (req: Request, res: Response, next: NextFunction) => {
+    updateMember = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const churchId = req.user!.churchId;
             const { memberId } = req.params;
@@ -80,7 +80,7 @@ export class FollowUpController {
         }
     };
 
-    removeMember = async (req: Request, res: Response, next: NextFunction) => {
+    removeMember = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const churchId = req.user!.churchId;
             const { memberId } = req.params;
@@ -96,7 +96,7 @@ export class FollowUpController {
     // ASSIGNMENTS
     // ============================================================================
 
-    getAssignments = async (req: Request, res: Response, next: NextFunction) => {
+    getAssignments = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const churchId = req.user!.churchId;
             const filters = {
@@ -118,7 +118,7 @@ export class FollowUpController {
         }
     };
 
-    getAssignment = async (req: Request, res: Response, next: NextFunction) => {
+    getAssignment = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const churchId = req.user!.churchId;
             const { assignmentId } = req.params;
@@ -130,15 +130,28 @@ export class FollowUpController {
         }
     };
 
-    getAssignmentByFirstTimer = async (req: Request, res: Response, next: NextFunction) => {
+    /**
+     * Fixed: added explicit Promise<void> return type and removed early-return
+     * `return res.xxx()` pattern — instead we use a single code path so TypeScript
+     * is satisfied that every branch either calls next() or ends with res.xxx().
+     */
+    getAssignmentByFirstTimer = async (
+        req: Request,
+        res: Response,
+        next: NextFunction
+    ): Promise<void> => {
         try {
             const churchId = req.user!.churchId;
             const { firstTimerId } = req.params;
 
-            const assignment = await this.followUpService.getAssignmentByFirstTimer(churchId, firstTimerId);
+            const assignment = await this.followUpService.getAssignmentByFirstTimer(
+                churchId,
+                firstTimerId
+            );
 
             if (!assignment) {
-                return res.status(404).json({ message: 'No active assignment found' });
+                res.status(404).json({ message: 'No active assignment found' });
+                return;
             }
 
             res.json(assignment);
@@ -147,7 +160,7 @@ export class FollowUpController {
         }
     };
 
-    createAssignment = async (req: Request, res: Response, next: NextFunction) => {
+    createAssignment = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const churchId = req.user!.churchId;
             const userId = req.user!.id;
@@ -159,7 +172,7 @@ export class FollowUpController {
         }
     };
 
-    bulkCreateAssignments = async (req: Request, res: Response, next: NextFunction) => {
+    bulkCreateAssignments = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const churchId = req.user!.churchId;
             const userId = req.user!.id;
@@ -171,19 +184,23 @@ export class FollowUpController {
         }
     };
 
-    updateAssignment = async (req: Request, res: Response, next: NextFunction) => {
+    updateAssignment = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const churchId = req.user!.churchId;
             const { assignmentId } = req.params;
 
-            const assignment = await this.followUpService.updateAssignment(churchId, assignmentId, req.body);
+            const assignment = await this.followUpService.updateAssignment(
+                churchId,
+                assignmentId,
+                req.body
+            );
             res.json(assignment);
         } catch (error) {
             next(error);
         }
     };
 
-    completeAssignment = async (req: Request, res: Response, next: NextFunction) => {
+    completeAssignment = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const churchId = req.user!.churchId;
             const userId = req.user!.id;
@@ -201,12 +218,16 @@ export class FollowUpController {
         }
     };
 
-    reassignMember = async (req: Request, res: Response, next: NextFunction) => {
+    reassignMember = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const churchId = req.user!.churchId;
             const { assignmentId } = req.params;
 
-            const assignment = await this.followUpService.reassignMember(churchId, assignmentId, req.body);
+            const assignment = await this.followUpService.reassignMember(
+                churchId,
+                assignmentId,
+                req.body
+            );
             res.json(assignment);
         } catch (error) {
             next(error);
@@ -217,7 +238,7 @@ export class FollowUpController {
     // ACTIVITIES
     // ============================================================================
 
-    getActivities = async (req: Request, res: Response, next: NextFunction) => {
+    getActivities = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const churchId = req.user!.churchId;
             const { assignmentId } = req.params;
@@ -229,14 +250,18 @@ export class FollowUpController {
                 limit: parseInt(req.query.limit as string) || 20,
             };
 
-            const result = await this.followUpService.getActivities(churchId, assignmentId, filters);
+            const result = await this.followUpService.getActivities(
+                churchId,
+                assignmentId,
+                filters
+            );
             res.json(result);
         } catch (error) {
             next(error);
         }
     };
 
-    sendMessage = async (req: Request, res: Response, next: NextFunction) => {
+    sendMessage = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const churchId = req.user!.churchId;
             const userId = req.user!.id;
@@ -248,7 +273,7 @@ export class FollowUpController {
         }
     };
 
-    recordActivity = async (req: Request, res: Response, next: NextFunction) => {
+    recordActivity = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const churchId = req.user!.churchId;
             const userId = req.user!.id;
@@ -260,7 +285,7 @@ export class FollowUpController {
         }
     };
 
-    recordResponse = async (req: Request, res: Response, next: NextFunction) => {
+    recordResponse = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const churchId = req.user!.churchId;
             const { activityId } = req.params;
@@ -280,43 +305,54 @@ export class FollowUpController {
     // TEMPLATES
     // ============================================================================
 
-    getTemplates = async (req: Request, res: Response, next: NextFunction) => {
+    getTemplates = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const churchId = req.user!.churchId;
             const { channel } = req.query;
 
-            const templates = await this.followUpService.getTemplates(churchId, channel as string);
+            const templates = await this.followUpService.getTemplates(
+                churchId,
+                channel as string
+            );
             res.json(templates);
         } catch (error) {
             next(error);
         }
     };
 
-    createTemplate = async (req: Request, res: Response, next: NextFunction) => {
+    createTemplate = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const churchId = req.user!.churchId;
             const userId = req.user!.id;
 
-            const template = await this.followUpService.createTemplate(churchId, userId, req.body);
+            const template = await this.followUpService.createTemplate(
+                churchId,
+                userId,
+                req.body
+            );
             res.status(201).json(template);
         } catch (error) {
             next(error);
         }
     };
 
-    updateTemplate = async (req: Request, res: Response, next: NextFunction) => {
+    updateTemplate = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const churchId = req.user!.churchId;
             const { templateId } = req.params;
 
-            const template = await this.followUpService.updateTemplate(churchId, templateId, req.body);
+            const template = await this.followUpService.updateTemplate(
+                churchId,
+                templateId,
+                req.body
+            );
             res.json(template);
         } catch (error) {
             next(error);
         }
     };
 
-    deleteTemplate = async (req: Request, res: Response, next: NextFunction) => {
+    deleteTemplate = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const churchId = req.user!.churchId;
             const { templateId } = req.params;
@@ -332,7 +368,7 @@ export class FollowUpController {
     // STATISTICS
     // ============================================================================
 
-    getStatistics = async (req: Request, res: Response, next: NextFunction) => {
+    getStatistics = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const churchId = req.user!.churchId;
 
@@ -347,7 +383,7 @@ export class FollowUpController {
     // MY ASSIGNMENTS
     // ============================================================================
 
-    getMyAssignments = async (req: Request, res: Response, next: NextFunction) => {
+    getMyAssignments = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const churchId = req.user!.churchId;
             const userId = req.user!.id;
@@ -360,7 +396,11 @@ export class FollowUpController {
                 limit: parseInt(req.query.limit as string) || 20,
             };
 
-            const result = await this.followUpService.getMyAssignments(churchId, userId, filters);
+            const result = await this.followUpService.getMyAssignments(
+                churchId,
+                userId,
+                filters
+            );
             res.json(result);
         } catch (error) {
             next(error);
@@ -371,7 +411,11 @@ export class FollowUpController {
     // UNASSIGNED FIRST TIMERS
     // ============================================================================
 
-    getUnassignedFirstTimers = async (req: Request, res: Response, next: NextFunction) => {
+    getUnassignedFirstTimers = async (
+        req: Request,
+        res: Response,
+        next: NextFunction
+    ): Promise<void> => {
         try {
             const churchId = req.user!.churchId;
 

@@ -15795,3 +15795,798 @@
 {"level":"info","message":"✅ SMTP transporter initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 19:42:51"}
 {"level":"info","message":"   Server: rccghralekki.com:465 (SSL)","service":"churchplus-api","timestamp":"2026-04-08 19:42:51"}
 {"level":"info","message":"   From: RCCG HRA <info@rccghralekki.com>","service":"churchplus-api","timestamp":"2026-04-08 19:42:51"}
+{"level":"warn","message":"Email configuration incomplete - emails will be logged only","service":"churchplus-api","timestamp":"2026-04-08 19:44:17"}
+{"level":"info","message":"Twilio SMS client initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 19:44:17"}
+{"level":"warn","message":"Email configuration incomplete - emails will be logged only","service":"churchplus-api","timestamp":"2026-04-08 19:44:17"}
+{"level":"info","message":"Twilio SMS client initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 19:44:17"}
+{"level":"info","message":"Push notification service initialized","service":"churchplus-api","timestamp":"2026-04-08 19:44:29"}
+{"level":"warn","message":"Email configuration incomplete - emails will be logged only","service":"churchplus-api","timestamp":"2026-04-08 19:44:30"}
+{"level":"info","message":"Twilio SMS client initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 19:44:30"}
+{"level":"warn","message":"Email configuration incomplete - emails will be logged only","service":"churchplus-api","timestamp":"2026-04-08 19:44:38"}
+{"level":"info","message":"Twilio SMS client initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 19:44:38"}
+{"level":"info","message":"🚀 Server running on port 5000 in production mode","service":"churchplus-api","timestamp":"2026-04-08 19:44:38"}
+{"level":"info","message":"📡 API available at http://localhost:5000/api/v1","service":"churchplus-api","timestamp":"2026-04-08 19:44:38"}
+{"level":"info","message":"✅ SMTP transporter initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 19:44:39"}
+{"level":"info","message":"   Server: rccghralekki.com:465 (SSL)","service":"churchplus-api","timestamp":"2026-04-08 19:44:39"}
+{"level":"info","message":"   From: RCCG HRA <info@rccghralekki.com>","service":"churchplus-api","timestamp":"2026-04-08 19:44:39"}
+{"level":"info","message":"✅ SMTP transporter initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 19:44:39"}
+{"level":"info","message":"   Server: rccghralekki.com:465 (SSL)","service":"churchplus-api","timestamp":"2026-04-08 19:44:39"}
+{"level":"info","message":"   From: RCCG HRA <info@rccghralekki.com>","service":"churchplus-api","timestamp":"2026-04-08 19:44:39"}
+{"level":"info","message":"✅ SMTP transporter initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 19:44:39"}
+{"level":"info","message":"   Server: rccghralekki.com:465 (SSL)","service":"churchplus-api","timestamp":"2026-04-08 19:44:39"}
+{"level":"info","message":"   From: RCCG HRA <info@rccghralekki.com>","service":"churchplus-api","timestamp":"2026-04-08 19:44:39"}
+{"level":"info","message":"✅ SMTP transporter initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 19:44:39"}
+{"level":"info","message":"   Server: rccghralekki.com:465 (SSL)","service":"churchplus-api","timestamp":"2026-04-08 19:44:39"}
+{"level":"info","message":"   From: RCCG HRA <info@rccghralekki.com>","service":"churchplus-api","timestamp":"2026-04-08 19:44:39"}
+{"level":"info","message":"✅ SMTP transporter initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 19:44:39"}
+{"level":"info","message":"   Server: rccghralekki.com:465 (SSL)","service":"churchplus-api","timestamp":"2026-04-08 19:44:39"}
+{"level":"info","message":"   From: RCCG HRA <info@rccghralekki.com>","service":"churchplus-api","timestamp":"2026-04-08 19:44:39"}
+{"level":"warn","message":"Email configuration incomplete - emails will be logged only","service":"churchplus-api","timestamp":"2026-04-08 19:51:30"}
+{"level":"info","message":"Twilio SMS client initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 19:51:30"}
+{"level":"warn","message":"Email configuration incomplete - emails will be logged only","service":"churchplus-api","timestamp":"2026-04-08 19:51:30"}
+{"level":"info","message":"Twilio SMS client initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 19:51:30"}
+{"level":"info","message":"Push notification service initialized","service":"churchplus-api","timestamp":"2026-04-08 19:51:35"}
+{"level":"warn","message":"Email configuration incomplete - emails will be logged only","service":"churchplus-api","timestamp":"2026-04-08 19:51:35"}
+{"level":"info","message":"Twilio SMS client initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 19:51:35"}
+{"level":"warn","message":"Email configuration incomplete - emails will be logged only","service":"churchplus-api","timestamp":"2026-04-08 19:51:36"}
+{"level":"warn","message":"Email configuration incomplete - emails will be logged only","service":"churchplus-api","timestamp":"2026-04-08 19:51:36"}
+{"level":"warn","message":"Email configuration incomplete - emails will be logged only","service":"churchplus-api","timestamp":"2026-04-08 19:51:39"}
+{"level":"info","message":"Twilio SMS client initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 19:51:39"}
+{"level":"info","message":"🚀 Server running on port 5000 in production mode","service":"churchplus-api","timestamp":"2026-04-08 19:51:39"}
+{"level":"info","message":"📡 API available at http://localhost:5000/api/v1","service":"churchplus-api","timestamp":"2026-04-08 19:51:39"}
+{"level":"info","message":"✅ SMTP transporter initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 19:51:40"}
+{"level":"info","message":"   Server: rccghralekki.com:465 (SSL)","service":"churchplus-api","timestamp":"2026-04-08 19:51:40"}
+{"level":"info","message":"   From: RCCG HRA <info@rccghralekki.com>","service":"churchplus-api","timestamp":"2026-04-08 19:51:40"}
+{"level":"info","message":"✅ SMTP transporter initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 19:51:40"}
+{"level":"info","message":"   Server: rccghralekki.com:465 (SSL)","service":"churchplus-api","timestamp":"2026-04-08 19:51:40"}
+{"level":"info","message":"   From: RCCG HRA <info@rccghralekki.com>","service":"churchplus-api","timestamp":"2026-04-08 19:51:40"}
+{"level":"info","message":"✅ SMTP transporter initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 19:51:40"}
+{"level":"info","message":"   Server: rccghralekki.com:465 (SSL)","service":"churchplus-api","timestamp":"2026-04-08 19:51:40"}
+{"level":"info","message":"   From: RCCG HRA <info@rccghralekki.com>","service":"churchplus-api","timestamp":"2026-04-08 19:51:40"}
+{"level":"info","message":"✅ SMTP transporter initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 19:51:40"}
+{"level":"info","message":"   Server: rccghralekki.com:465 (SSL)","service":"churchplus-api","timestamp":"2026-04-08 19:51:40"}
+{"level":"info","message":"   From: RCCG HRA <info@rccghralekki.com>","service":"churchplus-api","timestamp":"2026-04-08 19:51:40"}
+{"level":"info","message":"✅ SMTP transporter initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 19:51:40"}
+{"level":"info","message":"   Server: rccghralekki.com:465 (SSL)","service":"churchplus-api","timestamp":"2026-04-08 19:51:40"}
+{"level":"info","message":"   From: RCCG HRA <info@rccghralekki.com>","service":"churchplus-api","timestamp":"2026-04-08 19:51:40"}
+{"level":"warn","message":"Email configuration incomplete - emails will be logged only","service":"churchplus-api","timestamp":"2026-04-08 19:52:31"}
+{"level":"info","message":"Twilio SMS client initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 19:52:31"}
+{"level":"warn","message":"Email configuration incomplete - emails will be logged only","service":"churchplus-api","timestamp":"2026-04-08 19:52:31"}
+{"level":"info","message":"Twilio SMS client initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 19:52:31"}
+{"level":"info","message":"Push notification service initialized","service":"churchplus-api","timestamp":"2026-04-08 19:52:34"}
+{"level":"warn","message":"Email configuration incomplete - emails will be logged only","service":"churchplus-api","timestamp":"2026-04-08 19:52:34"}
+{"level":"info","message":"Twilio SMS client initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 19:52:34"}
+{"level":"warn","message":"Email configuration incomplete - emails will be logged only","service":"churchplus-api","timestamp":"2026-04-08 19:52:34"}
+{"level":"warn","message":"Email configuration incomplete - emails will be logged only","service":"churchplus-api","timestamp":"2026-04-08 19:52:34"}
+{"level":"warn","message":"Email configuration incomplete - emails will be logged only","service":"churchplus-api","timestamp":"2026-04-08 19:52:37"}
+{"level":"info","message":"Twilio SMS client initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 19:52:37"}
+{"level":"info","message":"🚀 Server running on port 5000 in production mode","service":"churchplus-api","timestamp":"2026-04-08 19:52:37"}
+{"level":"info","message":"📡 API available at http://localhost:5000/api/v1","service":"churchplus-api","timestamp":"2026-04-08 19:52:37"}
+{"level":"info","message":"✅ SMTP transporter initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 19:52:38"}
+{"level":"info","message":"   Server: rccghralekki.com:465 (SSL)","service":"churchplus-api","timestamp":"2026-04-08 19:52:38"}
+{"level":"info","message":"   From: RCCG HRA <info@rccghralekki.com>","service":"churchplus-api","timestamp":"2026-04-08 19:52:38"}
+{"level":"info","message":"✅ SMTP transporter initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 19:52:38"}
+{"level":"info","message":"   Server: rccghralekki.com:465 (SSL)","service":"churchplus-api","timestamp":"2026-04-08 19:52:38"}
+{"level":"info","message":"   From: RCCG HRA <info@rccghralekki.com>","service":"churchplus-api","timestamp":"2026-04-08 19:52:38"}
+{"level":"info","message":"✅ SMTP transporter initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 19:52:38"}
+{"level":"info","message":"   Server: rccghralekki.com:465 (SSL)","service":"churchplus-api","timestamp":"2026-04-08 19:52:38"}
+{"level":"info","message":"   From: RCCG HRA <info@rccghralekki.com>","service":"churchplus-api","timestamp":"2026-04-08 19:52:38"}
+{"level":"info","message":"✅ SMTP transporter initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 19:52:38"}
+{"level":"info","message":"   Server: rccghralekki.com:465 (SSL)","service":"churchplus-api","timestamp":"2026-04-08 19:52:38"}
+{"level":"info","message":"   From: RCCG HRA <info@rccghralekki.com>","service":"churchplus-api","timestamp":"2026-04-08 19:52:38"}
+{"level":"info","message":"✅ SMTP transporter initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 19:52:38"}
+{"level":"info","message":"   Server: rccghralekki.com:465 (SSL)","service":"churchplus-api","timestamp":"2026-04-08 19:52:38"}
+{"level":"info","message":"   From: RCCG HRA <info@rccghralekki.com>","service":"churchplus-api","timestamp":"2026-04-08 19:52:38"}
+{"level":"warn","message":"Email configuration incomplete - emails will be logged only","service":"churchplus-api","timestamp":"2026-04-08 20:01:17"}
+{"level":"info","message":"Twilio SMS client initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 20:01:17"}
+{"level":"warn","message":"Email configuration incomplete - emails will be logged only","service":"churchplus-api","timestamp":"2026-04-08 20:01:17"}
+{"level":"info","message":"Twilio SMS client initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 20:01:17"}
+{"level":"info","message":"Push notification service initialized","service":"churchplus-api","timestamp":"2026-04-08 20:01:23"}
+{"level":"warn","message":"Email configuration incomplete - emails will be logged only","service":"churchplus-api","timestamp":"2026-04-08 20:01:23"}
+{"level":"info","message":"Twilio SMS client initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 20:01:23"}
+{"level":"warn","message":"Email configuration incomplete - emails will be logged only","service":"churchplus-api","timestamp":"2026-04-08 20:01:24"}
+{"level":"warn","message":"Email configuration incomplete - emails will be logged only","service":"churchplus-api","timestamp":"2026-04-08 20:01:24"}
+{"level":"warn","message":"Email configuration incomplete - emails will be logged only","service":"churchplus-api","timestamp":"2026-04-08 20:01:28"}
+{"level":"info","message":"Twilio SMS client initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 20:01:28"}
+{"level":"info","message":"🚀 Server running on port 5000 in production mode","service":"churchplus-api","timestamp":"2026-04-08 20:01:28"}
+{"level":"info","message":"📡 API available at http://localhost:5000/api/v1","service":"churchplus-api","timestamp":"2026-04-08 20:01:28"}
+{"level":"info","message":"✅ SMTP transporter initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 20:01:29"}
+{"level":"info","message":"   Server: rccghralekki.com:465 (SSL)","service":"churchplus-api","timestamp":"2026-04-08 20:01:29"}
+{"level":"info","message":"   From: RCCG HRA <info@rccghralekki.com>","service":"churchplus-api","timestamp":"2026-04-08 20:01:29"}
+{"level":"info","message":"✅ SMTP transporter initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 20:01:29"}
+{"level":"info","message":"   Server: rccghralekki.com:465 (SSL)","service":"churchplus-api","timestamp":"2026-04-08 20:01:29"}
+{"level":"info","message":"   From: RCCG HRA <info@rccghralekki.com>","service":"churchplus-api","timestamp":"2026-04-08 20:01:29"}
+{"level":"info","message":"✅ SMTP transporter initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 20:01:29"}
+{"level":"info","message":"   Server: rccghralekki.com:465 (SSL)","service":"churchplus-api","timestamp":"2026-04-08 20:01:29"}
+{"level":"info","message":"   From: RCCG HRA <info@rccghralekki.com>","service":"churchplus-api","timestamp":"2026-04-08 20:01:29"}
+{"level":"info","message":"✅ SMTP transporter initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 20:01:30"}
+{"level":"info","message":"   Server: rccghralekki.com:465 (SSL)","service":"churchplus-api","timestamp":"2026-04-08 20:01:30"}
+{"level":"info","message":"   From: RCCG HRA <info@rccghralekki.com>","service":"churchplus-api","timestamp":"2026-04-08 20:01:30"}
+{"level":"info","message":"✅ SMTP transporter initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 20:01:30"}
+{"level":"info","message":"   Server: rccghralekki.com:465 (SSL)","service":"churchplus-api","timestamp":"2026-04-08 20:01:30"}
+{"level":"info","message":"   From: RCCG HRA <info@rccghralekki.com>","service":"churchplus-api","timestamp":"2026-04-08 20:01:30"}
+{"level":"warn","message":"Email configuration incomplete - emails will be logged only","service":"churchplus-api","timestamp":"2026-04-08 20:03:44"}
+{"level":"info","message":"Twilio SMS client initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 20:03:44"}
+{"level":"warn","message":"Email configuration incomplete - emails will be logged only","service":"churchplus-api","timestamp":"2026-04-08 20:03:44"}
+{"level":"info","message":"Twilio SMS client initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 20:03:44"}
+{"level":"info","message":"Push notification service initialized","service":"churchplus-api","timestamp":"2026-04-08 20:03:52"}
+{"level":"warn","message":"Email configuration incomplete - emails will be logged only","service":"churchplus-api","timestamp":"2026-04-08 20:03:52"}
+{"level":"info","message":"Twilio SMS client initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 20:03:52"}
+{"level":"warn","message":"Email configuration incomplete - emails will be logged only","service":"churchplus-api","timestamp":"2026-04-08 20:03:53"}
+{"level":"warn","message":"Email configuration incomplete - emails will be logged only","service":"churchplus-api","timestamp":"2026-04-08 20:03:53"}
+{"level":"warn","message":"Email configuration incomplete - emails will be logged only","service":"churchplus-api","timestamp":"2026-04-08 20:04:01"}
+{"level":"info","message":"Twilio SMS client initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 20:04:01"}
+{"level":"info","message":"🚀 Server running on port 5000 in production mode","service":"churchplus-api","timestamp":"2026-04-08 20:04:01"}
+{"level":"info","message":"📡 API available at http://localhost:5000/api/v1","service":"churchplus-api","timestamp":"2026-04-08 20:04:01"}
+{"level":"info","message":"✅ SMTP transporter initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 20:04:02"}
+{"level":"info","message":"   Server: rccghralekki.com:465 (SSL)","service":"churchplus-api","timestamp":"2026-04-08 20:04:02"}
+{"level":"info","message":"   From: RCCG HRA <info@rccghralekki.com>","service":"churchplus-api","timestamp":"2026-04-08 20:04:02"}
+{"level":"info","message":"✅ SMTP transporter initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 20:04:02"}
+{"level":"info","message":"   Server: rccghralekki.com:465 (SSL)","service":"churchplus-api","timestamp":"2026-04-08 20:04:02"}
+{"level":"info","message":"   From: RCCG HRA <info@rccghralekki.com>","service":"churchplus-api","timestamp":"2026-04-08 20:04:02"}
+{"level":"info","message":"✅ SMTP transporter initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 20:04:02"}
+{"level":"info","message":"   Server: rccghralekki.com:465 (SSL)","service":"churchplus-api","timestamp":"2026-04-08 20:04:02"}
+{"level":"info","message":"   From: RCCG HRA <info@rccghralekki.com>","service":"churchplus-api","timestamp":"2026-04-08 20:04:02"}
+{"level":"info","message":"✅ SMTP transporter initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 20:04:02"}
+{"level":"info","message":"   Server: rccghralekki.com:465 (SSL)","service":"churchplus-api","timestamp":"2026-04-08 20:04:02"}
+{"level":"info","message":"   From: RCCG HRA <info@rccghralekki.com>","service":"churchplus-api","timestamp":"2026-04-08 20:04:02"}
+{"level":"info","message":"✅ SMTP transporter initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 20:04:02"}
+{"level":"info","message":"   Server: rccghralekki.com:465 (SSL)","service":"churchplus-api","timestamp":"2026-04-08 20:04:02"}
+{"level":"info","message":"   From: RCCG HRA <info@rccghralekki.com>","service":"churchplus-api","timestamp":"2026-04-08 20:04:02"}
+{"level":"warn","message":"Email configuration incomplete - emails will be logged only","service":"churchplus-api","timestamp":"2026-04-08 20:15:29"}
+{"level":"info","message":"Twilio SMS client initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 20:15:29"}
+{"level":"warn","message":"Email configuration incomplete - emails will be logged only","service":"churchplus-api","timestamp":"2026-04-08 20:15:29"}
+{"level":"info","message":"Twilio SMS client initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 20:15:29"}
+{"level":"info","message":"Push notification service initialized","service":"churchplus-api","timestamp":"2026-04-08 20:15:32"}
+{"level":"warn","message":"Email configuration incomplete - emails will be logged only","service":"churchplus-api","timestamp":"2026-04-08 20:15:32"}
+{"level":"info","message":"Twilio SMS client initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 20:15:32"}
+{"level":"warn","message":"Email configuration incomplete - emails will be logged only","service":"churchplus-api","timestamp":"2026-04-08 20:15:32"}
+{"level":"warn","message":"Email configuration incomplete - emails will be logged only","service":"churchplus-api","timestamp":"2026-04-08 20:15:32"}
+{"level":"warn","message":"Email configuration incomplete - emails will be logged only","service":"churchplus-api","timestamp":"2026-04-08 20:15:35"}
+{"level":"info","message":"Twilio SMS client initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 20:15:35"}
+{"level":"info","message":"🚀 Server running on port 5000 in production mode","service":"churchplus-api","timestamp":"2026-04-08 20:15:35"}
+{"level":"info","message":"📡 API available at http://localhost:5000/api/v1","service":"churchplus-api","timestamp":"2026-04-08 20:15:35"}
+{"level":"info","message":"✅ SMTP transporter initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 20:15:36"}
+{"level":"info","message":"   Server: rccghralekki.com:465 (SSL)","service":"churchplus-api","timestamp":"2026-04-08 20:15:36"}
+{"level":"info","message":"   From: RCCG HRA <info@rccghralekki.com>","service":"churchplus-api","timestamp":"2026-04-08 20:15:36"}
+{"level":"info","message":"✅ SMTP transporter initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 20:15:36"}
+{"level":"info","message":"   Server: rccghralekki.com:465 (SSL)","service":"churchplus-api","timestamp":"2026-04-08 20:15:36"}
+{"level":"info","message":"   From: RCCG HRA <info@rccghralekki.com>","service":"churchplus-api","timestamp":"2026-04-08 20:15:36"}
+{"level":"info","message":"✅ SMTP transporter initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 20:15:36"}
+{"level":"info","message":"   Server: rccghralekki.com:465 (SSL)","service":"churchplus-api","timestamp":"2026-04-08 20:15:36"}
+{"level":"info","message":"   From: RCCG HRA <info@rccghralekki.com>","service":"churchplus-api","timestamp":"2026-04-08 20:15:36"}
+{"level":"info","message":"✅ SMTP transporter initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 20:15:36"}
+{"level":"info","message":"   Server: rccghralekki.com:465 (SSL)","service":"churchplus-api","timestamp":"2026-04-08 20:15:36"}
+{"level":"info","message":"   From: RCCG HRA <info@rccghralekki.com>","service":"churchplus-api","timestamp":"2026-04-08 20:15:36"}
+{"level":"info","message":"✅ SMTP transporter initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 20:15:36"}
+{"level":"info","message":"   Server: rccghralekki.com:465 (SSL)","service":"churchplus-api","timestamp":"2026-04-08 20:15:36"}
+{"level":"info","message":"   From: RCCG HRA <info@rccghralekki.com>","service":"churchplus-api","timestamp":"2026-04-08 20:15:36"}
+{"level":"warn","message":"Email configuration incomplete - emails will be logged only","service":"churchplus-api","timestamp":"2026-04-08 20:27:24"}
+{"level":"info","message":"Twilio SMS client initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 20:27:24"}
+{"level":"warn","message":"Email configuration incomplete - emails will be logged only","service":"churchplus-api","timestamp":"2026-04-08 20:27:24"}
+{"level":"info","message":"Twilio SMS client initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 20:27:24"}
+{"level":"info","message":"Push notification service initialized","service":"churchplus-api","timestamp":"2026-04-08 20:27:27"}
+{"level":"warn","message":"Email configuration incomplete - emails will be logged only","service":"churchplus-api","timestamp":"2026-04-08 20:27:27"}
+{"level":"info","message":"Twilio SMS client initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 20:27:27"}
+{"level":"warn","message":"Email configuration incomplete - emails will be logged only","service":"churchplus-api","timestamp":"2026-04-08 20:27:27"}
+{"level":"warn","message":"Email configuration incomplete - emails will be logged only","service":"churchplus-api","timestamp":"2026-04-08 20:27:27"}
+{"level":"warn","message":"Email configuration incomplete - emails will be logged only","service":"churchplus-api","timestamp":"2026-04-08 20:27:31"}
+{"level":"info","message":"Twilio SMS client initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 20:27:31"}
+{"level":"info","message":"🚀 Server running on port 5000 in production mode","service":"churchplus-api","timestamp":"2026-04-08 20:27:31"}
+{"level":"info","message":"📡 API available at http://localhost:5000/api/v1","service":"churchplus-api","timestamp":"2026-04-08 20:27:31"}
+{"level":"info","message":"✅ SMTP transporter initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 20:27:32"}
+{"level":"info","message":"   Server: rccghralekki.com:465 (SSL)","service":"churchplus-api","timestamp":"2026-04-08 20:27:32"}
+{"level":"info","message":"   From: RCCG HRA <info@rccghralekki.com>","service":"churchplus-api","timestamp":"2026-04-08 20:27:32"}
+{"level":"info","message":"✅ SMTP transporter initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 20:27:32"}
+{"level":"info","message":"   Server: rccghralekki.com:465 (SSL)","service":"churchplus-api","timestamp":"2026-04-08 20:27:32"}
+{"level":"info","message":"   From: RCCG HRA <info@rccghralekki.com>","service":"churchplus-api","timestamp":"2026-04-08 20:27:32"}
+{"level":"info","message":"✅ SMTP transporter initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 20:27:32"}
+{"level":"info","message":"   Server: rccghralekki.com:465 (SSL)","service":"churchplus-api","timestamp":"2026-04-08 20:27:32"}
+{"level":"info","message":"   From: RCCG HRA <info@rccghralekki.com>","service":"churchplus-api","timestamp":"2026-04-08 20:27:32"}
+{"level":"info","message":"✅ SMTP transporter initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 20:27:32"}
+{"level":"info","message":"   Server: rccghralekki.com:465 (SSL)","service":"churchplus-api","timestamp":"2026-04-08 20:27:32"}
+{"level":"info","message":"   From: RCCG HRA <info@rccghralekki.com>","service":"churchplus-api","timestamp":"2026-04-08 20:27:32"}
+{"level":"info","message":"✅ SMTP transporter initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 20:27:33"}
+{"level":"info","message":"   Server: rccghralekki.com:465 (SSL)","service":"churchplus-api","timestamp":"2026-04-08 20:27:33"}
+{"level":"info","message":"   From: RCCG HRA <info@rccghralekki.com>","service":"churchplus-api","timestamp":"2026-04-08 20:27:33"}
+{"level":"warn","message":"Email configuration incomplete - emails will be logged only","service":"churchplus-api","timestamp":"2026-04-08 20:28:11"}
+{"level":"info","message":"Twilio SMS client initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 20:28:11"}
+{"level":"warn","message":"Email configuration incomplete - emails will be logged only","service":"churchplus-api","timestamp":"2026-04-08 20:28:11"}
+{"level":"info","message":"Twilio SMS client initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 20:28:11"}
+{"level":"info","message":"Push notification service initialized","service":"churchplus-api","timestamp":"2026-04-08 20:28:14"}
+{"level":"warn","message":"Email configuration incomplete - emails will be logged only","service":"churchplus-api","timestamp":"2026-04-08 20:28:14"}
+{"level":"info","message":"Twilio SMS client initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 20:28:14"}
+{"level":"warn","message":"Email configuration incomplete - emails will be logged only","service":"churchplus-api","timestamp":"2026-04-08 20:28:14"}
+{"level":"warn","message":"Email configuration incomplete - emails will be logged only","service":"churchplus-api","timestamp":"2026-04-08 20:28:14"}
+{"level":"warn","message":"Email configuration incomplete - emails will be logged only","service":"churchplus-api","timestamp":"2026-04-08 20:28:17"}
+{"level":"info","message":"Twilio SMS client initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 20:28:17"}
+{"level":"info","message":"🚀 Server running on port 5000 in production mode","service":"churchplus-api","timestamp":"2026-04-08 20:28:17"}
+{"level":"info","message":"📡 API available at http://localhost:5000/api/v1","service":"churchplus-api","timestamp":"2026-04-08 20:28:17"}
+{"level":"info","message":"✅ SMTP transporter initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 20:28:18"}
+{"level":"info","message":"   Server: rccghralekki.com:465 (SSL)","service":"churchplus-api","timestamp":"2026-04-08 20:28:18"}
+{"level":"info","message":"   From: RCCG HRA <info@rccghralekki.com>","service":"churchplus-api","timestamp":"2026-04-08 20:28:18"}
+{"level":"info","message":"✅ SMTP transporter initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 20:28:18"}
+{"level":"info","message":"   Server: rccghralekki.com:465 (SSL)","service":"churchplus-api","timestamp":"2026-04-08 20:28:18"}
+{"level":"info","message":"   From: RCCG HRA <info@rccghralekki.com>","service":"churchplus-api","timestamp":"2026-04-08 20:28:18"}
+{"level":"info","message":"✅ SMTP transporter initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 20:28:18"}
+{"level":"info","message":"   Server: rccghralekki.com:465 (SSL)","service":"churchplus-api","timestamp":"2026-04-08 20:28:18"}
+{"level":"info","message":"   From: RCCG HRA <info@rccghralekki.com>","service":"churchplus-api","timestamp":"2026-04-08 20:28:18"}
+{"level":"info","message":"✅ SMTP transporter initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 20:28:18"}
+{"level":"info","message":"   Server: rccghralekki.com:465 (SSL)","service":"churchplus-api","timestamp":"2026-04-08 20:28:18"}
+{"level":"info","message":"   From: RCCG HRA <info@rccghralekki.com>","service":"churchplus-api","timestamp":"2026-04-08 20:28:18"}
+{"level":"info","message":"✅ SMTP transporter initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 20:28:20"}
+{"level":"info","message":"   Server: rccghralekki.com:465 (SSL)","service":"churchplus-api","timestamp":"2026-04-08 20:28:20"}
+{"level":"info","message":"   From: RCCG HRA <info@rccghralekki.com>","service":"churchplus-api","timestamp":"2026-04-08 20:28:20"}
+{"level":"warn","message":"Email configuration incomplete - emails will be logged only","service":"churchplus-api","timestamp":"2026-04-08 20:29:07"}
+{"level":"info","message":"Twilio SMS client initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 20:29:07"}
+{"level":"warn","message":"Email configuration incomplete - emails will be logged only","service":"churchplus-api","timestamp":"2026-04-08 20:29:07"}
+{"level":"info","message":"Twilio SMS client initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 20:29:07"}
+{"level":"info","message":"Push notification service initialized","service":"churchplus-api","timestamp":"2026-04-08 20:29:10"}
+{"level":"warn","message":"Email configuration incomplete - emails will be logged only","service":"churchplus-api","timestamp":"2026-04-08 20:29:10"}
+{"level":"info","message":"Twilio SMS client initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 20:29:10"}
+{"level":"warn","message":"Email configuration incomplete - emails will be logged only","service":"churchplus-api","timestamp":"2026-04-08 20:29:11"}
+{"level":"warn","message":"Email configuration incomplete - emails will be logged only","service":"churchplus-api","timestamp":"2026-04-08 20:29:11"}
+{"level":"warn","message":"Email configuration incomplete - emails will be logged only","service":"churchplus-api","timestamp":"2026-04-08 20:29:17"}
+{"level":"info","message":"Twilio SMS client initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 20:29:17"}
+{"level":"info","message":"🚀 Server running on port 5000 in production mode","service":"churchplus-api","timestamp":"2026-04-08 20:29:17"}
+{"level":"info","message":"📡 API available at http://localhost:5000/api/v1","service":"churchplus-api","timestamp":"2026-04-08 20:29:17"}
+{"level":"warn","message":"Email configuration incomplete - emails will be logged only","service":"churchplus-api","timestamp":"2026-04-08 20:31:01"}
+{"level":"info","message":"Twilio SMS client initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 20:31:01"}
+{"level":"warn","message":"Email configuration incomplete - emails will be logged only","service":"churchplus-api","timestamp":"2026-04-08 20:31:01"}
+{"level":"info","message":"Twilio SMS client initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 20:31:01"}
+{"level":"info","message":"Push notification service initialized","service":"churchplus-api","timestamp":"2026-04-08 20:31:05"}
+{"level":"warn","message":"Email configuration incomplete - emails will be logged only","service":"churchplus-api","timestamp":"2026-04-08 20:31:06"}
+{"level":"info","message":"Twilio SMS client initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 20:31:06"}
+{"level":"warn","message":"Email configuration incomplete - emails will be logged only","service":"churchplus-api","timestamp":"2026-04-08 20:31:06"}
+{"level":"warn","message":"Email configuration incomplete - emails will be logged only","service":"churchplus-api","timestamp":"2026-04-08 20:31:06"}
+{"level":"warn","message":"Email configuration incomplete - emails will be logged only","service":"churchplus-api","timestamp":"2026-04-08 20:31:12"}
+{"level":"info","message":"Twilio SMS client initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 20:31:12"}
+{"level":"info","message":"🚀 Server running on port 5000 in production mode","service":"churchplus-api","timestamp":"2026-04-08 20:31:12"}
+{"level":"info","message":"📡 API available at http://localhost:5000/api/v1","service":"churchplus-api","timestamp":"2026-04-08 20:31:12"}
+{"level":"info","message":"✅ SMTP transporter initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 20:31:15"}
+{"level":"info","message":"   Server: rccghralekki.com:465 (SSL)","service":"churchplus-api","timestamp":"2026-04-08 20:31:15"}
+{"level":"info","message":"   From: RCCG HRA <info@rccghralekki.com>","service":"churchplus-api","timestamp":"2026-04-08 20:31:15"}
+{"level":"info","message":"✅ SMTP transporter initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 20:31:15"}
+{"level":"info","message":"   Server: rccghralekki.com:465 (SSL)","service":"churchplus-api","timestamp":"2026-04-08 20:31:15"}
+{"level":"info","message":"   From: RCCG HRA <info@rccghralekki.com>","service":"churchplus-api","timestamp":"2026-04-08 20:31:15"}
+{"level":"info","message":"✅ SMTP transporter initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 20:31:15"}
+{"level":"info","message":"   Server: rccghralekki.com:465 (SSL)","service":"churchplus-api","timestamp":"2026-04-08 20:31:15"}
+{"level":"info","message":"   From: RCCG HRA <info@rccghralekki.com>","service":"churchplus-api","timestamp":"2026-04-08 20:31:15"}
+{"level":"info","message":"✅ SMTP transporter initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 20:31:16"}
+{"level":"info","message":"   Server: rccghralekki.com:465 (SSL)","service":"churchplus-api","timestamp":"2026-04-08 20:31:16"}
+{"level":"info","message":"   From: RCCG HRA <info@rccghralekki.com>","service":"churchplus-api","timestamp":"2026-04-08 20:31:16"}
+{"level":"info","message":"✅ SMTP transporter initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 20:31:16"}
+{"level":"info","message":"   Server: rccghralekki.com:465 (SSL)","service":"churchplus-api","timestamp":"2026-04-08 20:31:16"}
+{"level":"info","message":"   From: RCCG HRA <info@rccghralekki.com>","service":"churchplus-api","timestamp":"2026-04-08 20:31:16"}
+{"level":"warn","message":"Email configuration incomplete - emails will be logged only","service":"churchplus-api","timestamp":"2026-04-08 20:36:35"}
+{"level":"info","message":"Twilio SMS client initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 20:36:35"}
+{"level":"warn","message":"Email configuration incomplete - emails will be logged only","service":"churchplus-api","timestamp":"2026-04-08 20:36:35"}
+{"level":"info","message":"Twilio SMS client initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 20:36:35"}
+{"level":"info","message":"Push notification service initialized","service":"churchplus-api","timestamp":"2026-04-08 20:36:40"}
+{"level":"warn","message":"Email configuration incomplete - emails will be logged only","service":"churchplus-api","timestamp":"2026-04-08 20:36:40"}
+{"level":"info","message":"Twilio SMS client initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 20:36:40"}
+{"level":"warn","message":"Email configuration incomplete - emails will be logged only","service":"churchplus-api","timestamp":"2026-04-08 20:36:41"}
+{"level":"warn","message":"Email configuration incomplete - emails will be logged only","service":"churchplus-api","timestamp":"2026-04-08 20:36:41"}
+{"level":"warn","message":"Email configuration incomplete - emails will be logged only","service":"churchplus-api","timestamp":"2026-04-08 20:36:45"}
+{"level":"info","message":"Twilio SMS client initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 20:36:45"}
+{"level":"info","message":"🚀 Server running on port 5000 in production mode","service":"churchplus-api","timestamp":"2026-04-08 20:36:45"}
+{"level":"info","message":"📡 API available at http://localhost:5000/api/v1","service":"churchplus-api","timestamp":"2026-04-08 20:36:45"}
+{"level":"info","message":"✅ SMTP transporter initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 20:36:46"}
+{"level":"info","message":"   Server: rccghralekki.com:465 (SSL)","service":"churchplus-api","timestamp":"2026-04-08 20:36:46"}
+{"level":"info","message":"   From: RCCG HRA <info@rccghralekki.com>","service":"churchplus-api","timestamp":"2026-04-08 20:36:46"}
+{"level":"info","message":"✅ SMTP transporter initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 20:36:46"}
+{"level":"info","message":"   Server: rccghralekki.com:465 (SSL)","service":"churchplus-api","timestamp":"2026-04-08 20:36:46"}
+{"level":"info","message":"   From: RCCG HRA <info@rccghralekki.com>","service":"churchplus-api","timestamp":"2026-04-08 20:36:46"}
+{"level":"info","message":"✅ SMTP transporter initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 20:36:46"}
+{"level":"info","message":"   Server: rccghralekki.com:465 (SSL)","service":"churchplus-api","timestamp":"2026-04-08 20:36:46"}
+{"level":"info","message":"   From: RCCG HRA <info@rccghralekki.com>","service":"churchplus-api","timestamp":"2026-04-08 20:36:46"}
+{"level":"info","message":"✅ SMTP transporter initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 20:36:46"}
+{"level":"info","message":"   Server: rccghralekki.com:465 (SSL)","service":"churchplus-api","timestamp":"2026-04-08 20:36:46"}
+{"level":"info","message":"   From: RCCG HRA <info@rccghralekki.com>","service":"churchplus-api","timestamp":"2026-04-08 20:36:46"}
+{"level":"info","message":"✅ SMTP transporter initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 20:36:46"}
+{"level":"info","message":"   Server: rccghralekki.com:465 (SSL)","service":"churchplus-api","timestamp":"2026-04-08 20:36:46"}
+{"level":"info","message":"   From: RCCG HRA <info@rccghralekki.com>","service":"churchplus-api","timestamp":"2026-04-08 20:36:46"}
+{"level":"warn","message":"Email configuration incomplete - emails will be logged only","service":"churchplus-api","timestamp":"2026-04-08 20:40:46"}
+{"level":"info","message":"Twilio SMS client initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 20:40:46"}
+{"level":"warn","message":"Email configuration incomplete - emails will be logged only","service":"churchplus-api","timestamp":"2026-04-08 20:40:46"}
+{"level":"info","message":"Twilio SMS client initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 20:40:46"}
+{"level":"info","message":"Push notification service initialized","service":"churchplus-api","timestamp":"2026-04-08 20:40:56"}
+{"level":"warn","message":"Email configuration incomplete - emails will be logged only","service":"churchplus-api","timestamp":"2026-04-08 20:40:57"}
+{"level":"info","message":"Twilio SMS client initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 20:40:57"}
+{"level":"warn","message":"Email configuration incomplete - emails will be logged only","service":"churchplus-api","timestamp":"2026-04-08 20:40:58"}
+{"level":"warn","message":"Email configuration incomplete - emails will be logged only","service":"churchplus-api","timestamp":"2026-04-08 20:40:58"}
+{"level":"warn","message":"Email configuration incomplete - emails will be logged only","service":"churchplus-api","timestamp":"2026-04-08 20:41:03"}
+{"level":"info","message":"Twilio SMS client initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 20:41:03"}
+{"level":"info","message":"🚀 Server running on port 5000 in production mode","service":"churchplus-api","timestamp":"2026-04-08 20:41:03"}
+{"level":"info","message":"📡 API available at http://localhost:5000/api/v1","service":"churchplus-api","timestamp":"2026-04-08 20:41:03"}
+{"level":"info","message":"✅ SMTP transporter initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 20:41:04"}
+{"level":"info","message":"   Server: rccghralekki.com:465 (SSL)","service":"churchplus-api","timestamp":"2026-04-08 20:41:04"}
+{"level":"info","message":"   From: RCCG HRA <info@rccghralekki.com>","service":"churchplus-api","timestamp":"2026-04-08 20:41:04"}
+{"level":"info","message":"✅ SMTP transporter initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 20:41:04"}
+{"level":"info","message":"   Server: rccghralekki.com:465 (SSL)","service":"churchplus-api","timestamp":"2026-04-08 20:41:04"}
+{"level":"info","message":"   From: RCCG HRA <info@rccghralekki.com>","service":"churchplus-api","timestamp":"2026-04-08 20:41:04"}
+{"level":"info","message":"✅ SMTP transporter initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 20:41:04"}
+{"level":"info","message":"   Server: rccghralekki.com:465 (SSL)","service":"churchplus-api","timestamp":"2026-04-08 20:41:04"}
+{"level":"info","message":"   From: RCCG HRA <info@rccghralekki.com>","service":"churchplus-api","timestamp":"2026-04-08 20:41:04"}
+{"level":"info","message":"✅ SMTP transporter initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 20:41:04"}
+{"level":"info","message":"   Server: rccghralekki.com:465 (SSL)","service":"churchplus-api","timestamp":"2026-04-08 20:41:04"}
+{"level":"info","message":"   From: RCCG HRA <info@rccghralekki.com>","service":"churchplus-api","timestamp":"2026-04-08 20:41:04"}
+{"level":"info","message":"✅ SMTP transporter initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 20:41:04"}
+{"level":"info","message":"   Server: rccghralekki.com:465 (SSL)","service":"churchplus-api","timestamp":"2026-04-08 20:41:04"}
+{"level":"info","message":"   From: RCCG HRA <info@rccghralekki.com>","service":"churchplus-api","timestamp":"2026-04-08 20:41:04"}
+{"level":"warn","message":"Email configuration incomplete - emails will be logged only","service":"churchplus-api","timestamp":"2026-04-08 20:44:23"}
+{"level":"info","message":"Twilio SMS client initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 20:44:23"}
+{"level":"warn","message":"Email configuration incomplete - emails will be logged only","service":"churchplus-api","timestamp":"2026-04-08 20:44:23"}
+{"level":"info","message":"Twilio SMS client initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 20:44:23"}
+{"level":"info","message":"Push notification service initialized","service":"churchplus-api","timestamp":"2026-04-08 20:44:31"}
+{"level":"warn","message":"Email configuration incomplete - emails will be logged only","service":"churchplus-api","timestamp":"2026-04-08 20:44:31"}
+{"level":"info","message":"Twilio SMS client initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 20:44:31"}
+{"level":"warn","message":"Email configuration incomplete - emails will be logged only","service":"churchplus-api","timestamp":"2026-04-08 20:44:31"}
+{"level":"warn","message":"Email configuration incomplete - emails will be logged only","service":"churchplus-api","timestamp":"2026-04-08 20:44:31"}
+{"level":"warn","message":"Email configuration incomplete - emails will be logged only","service":"churchplus-api","timestamp":"2026-04-08 20:44:38"}
+{"level":"info","message":"Twilio SMS client initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 20:44:38"}
+{"level":"info","message":"🚀 Server running on port 5000 in production mode","service":"churchplus-api","timestamp":"2026-04-08 20:44:38"}
+{"level":"info","message":"📡 API available at http://localhost:5000/api/v1","service":"churchplus-api","timestamp":"2026-04-08 20:44:38"}
+{"level":"info","message":"✅ SMTP transporter initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 20:44:39"}
+{"level":"info","message":"   Server: rccghralekki.com:465 (SSL)","service":"churchplus-api","timestamp":"2026-04-08 20:44:39"}
+{"level":"info","message":"   From: RCCG HRA <info@rccghralekki.com>","service":"churchplus-api","timestamp":"2026-04-08 20:44:39"}
+{"level":"info","message":"✅ SMTP transporter initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 20:44:39"}
+{"level":"info","message":"   Server: rccghralekki.com:465 (SSL)","service":"churchplus-api","timestamp":"2026-04-08 20:44:39"}
+{"level":"info","message":"   From: RCCG HRA <info@rccghralekki.com>","service":"churchplus-api","timestamp":"2026-04-08 20:44:39"}
+{"level":"info","message":"✅ SMTP transporter initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 20:44:39"}
+{"level":"info","message":"   Server: rccghralekki.com:465 (SSL)","service":"churchplus-api","timestamp":"2026-04-08 20:44:39"}
+{"level":"info","message":"   From: RCCG HRA <info@rccghralekki.com>","service":"churchplus-api","timestamp":"2026-04-08 20:44:39"}
+{"level":"info","message":"✅ SMTP transporter initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 20:44:39"}
+{"level":"info","message":"   Server: rccghralekki.com:465 (SSL)","service":"churchplus-api","timestamp":"2026-04-08 20:44:39"}
+{"level":"info","message":"   From: RCCG HRA <info@rccghralekki.com>","service":"churchplus-api","timestamp":"2026-04-08 20:44:39"}
+{"level":"info","message":"✅ SMTP transporter initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 20:44:39"}
+{"level":"info","message":"   Server: rccghralekki.com:465 (SSL)","service":"churchplus-api","timestamp":"2026-04-08 20:44:39"}
+{"level":"info","message":"   From: RCCG HRA <info@rccghralekki.com>","service":"churchplus-api","timestamp":"2026-04-08 20:44:39"}
+{"level":"warn","message":"Email configuration incomplete - emails will be logged only","service":"churchplus-api","timestamp":"2026-04-08 21:02:27"}
+{"level":"info","message":"Twilio SMS client initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 21:02:27"}
+{"level":"warn","message":"Email configuration incomplete - emails will be logged only","service":"churchplus-api","timestamp":"2026-04-08 21:02:27"}
+{"level":"info","message":"Twilio SMS client initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 21:02:27"}
+{"level":"info","message":"Push notification service initialized","service":"churchplus-api","timestamp":"2026-04-08 21:02:33"}
+{"level":"warn","message":"Email configuration incomplete - emails will be logged only","service":"churchplus-api","timestamp":"2026-04-08 21:02:33"}
+{"level":"info","message":"Twilio SMS client initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 21:02:33"}
+{"level":"warn","message":"Email configuration incomplete - emails will be logged only","service":"churchplus-api","timestamp":"2026-04-08 21:02:34"}
+{"level":"warn","message":"Email configuration incomplete - emails will be logged only","service":"churchplus-api","timestamp":"2026-04-08 21:02:34"}
+{"level":"warn","message":"Email configuration incomplete - emails will be logged only","service":"churchplus-api","timestamp":"2026-04-08 21:02:41"}
+{"level":"info","message":"Twilio SMS client initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 21:02:41"}
+{"level":"info","message":"🚀 Server running on port 5000 in production mode","service":"churchplus-api","timestamp":"2026-04-08 21:02:41"}
+{"level":"info","message":"📡 API available at http://localhost:5000/api/v1","service":"churchplus-api","timestamp":"2026-04-08 21:02:41"}
+{"level":"info","message":"✅ SMTP transporter initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 21:02:41"}
+{"level":"info","message":"   Server: rccghralekki.com:465 (SSL)","service":"churchplus-api","timestamp":"2026-04-08 21:02:41"}
+{"level":"info","message":"   From: RCCG HRA <info@rccghralekki.com>","service":"churchplus-api","timestamp":"2026-04-08 21:02:41"}
+{"level":"info","message":"✅ SMTP transporter initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 21:02:41"}
+{"level":"info","message":"   Server: rccghralekki.com:465 (SSL)","service":"churchplus-api","timestamp":"2026-04-08 21:02:41"}
+{"level":"info","message":"   From: RCCG HRA <info@rccghralekki.com>","service":"churchplus-api","timestamp":"2026-04-08 21:02:41"}
+{"level":"info","message":"✅ SMTP transporter initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 21:02:41"}
+{"level":"info","message":"   Server: rccghralekki.com:465 (SSL)","service":"churchplus-api","timestamp":"2026-04-08 21:02:41"}
+{"level":"info","message":"   From: RCCG HRA <info@rccghralekki.com>","service":"churchplus-api","timestamp":"2026-04-08 21:02:41"}
+{"level":"info","message":"✅ SMTP transporter initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 21:02:42"}
+{"level":"info","message":"   Server: rccghralekki.com:465 (SSL)","service":"churchplus-api","timestamp":"2026-04-08 21:02:42"}
+{"level":"info","message":"   From: RCCG HRA <info@rccghralekki.com>","service":"churchplus-api","timestamp":"2026-04-08 21:02:42"}
+{"level":"info","message":"✅ SMTP transporter initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 21:02:42"}
+{"level":"info","message":"   Server: rccghralekki.com:465 (SSL)","service":"churchplus-api","timestamp":"2026-04-08 21:02:42"}
+{"level":"info","message":"   From: RCCG HRA <info@rccghralekki.com>","service":"churchplus-api","timestamp":"2026-04-08 21:02:42"}
+{"level":"warn","message":"Email configuration incomplete - emails will be logged only","service":"churchplus-api","timestamp":"2026-04-08 21:03:25"}
+{"level":"info","message":"Twilio SMS client initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 21:03:25"}
+{"level":"warn","message":"Email configuration incomplete - emails will be logged only","service":"churchplus-api","timestamp":"2026-04-08 21:03:25"}
+{"level":"info","message":"Twilio SMS client initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 21:03:25"}
+{"level":"info","message":"Push notification service initialized","service":"churchplus-api","timestamp":"2026-04-08 21:03:32"}
+{"level":"warn","message":"Email configuration incomplete - emails will be logged only","service":"churchplus-api","timestamp":"2026-04-08 21:03:32"}
+{"level":"info","message":"Twilio SMS client initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 21:03:32"}
+{"level":"warn","message":"Email configuration incomplete - emails will be logged only","service":"churchplus-api","timestamp":"2026-04-08 21:03:33"}
+{"level":"warn","message":"Email configuration incomplete - emails will be logged only","service":"churchplus-api","timestamp":"2026-04-08 21:03:33"}
+{"level":"warn","message":"Email configuration incomplete - emails will be logged only","service":"churchplus-api","timestamp":"2026-04-08 21:03:40"}
+{"level":"info","message":"Twilio SMS client initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 21:03:40"}
+{"level":"info","message":"🚀 Server running on port 5000 in production mode","service":"churchplus-api","timestamp":"2026-04-08 21:03:40"}
+{"level":"info","message":"📡 API available at http://localhost:5000/api/v1","service":"churchplus-api","timestamp":"2026-04-08 21:03:40"}
+{"level":"info","message":"✅ SMTP transporter initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 21:03:42"}
+{"level":"info","message":"   Server: rccghralekki.com:465 (SSL)","service":"churchplus-api","timestamp":"2026-04-08 21:03:42"}
+{"level":"info","message":"   From: RCCG HRA <info@rccghralekki.com>","service":"churchplus-api","timestamp":"2026-04-08 21:03:42"}
+{"level":"info","message":"✅ SMTP transporter initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 21:03:42"}
+{"level":"info","message":"   Server: rccghralekki.com:465 (SSL)","service":"churchplus-api","timestamp":"2026-04-08 21:03:42"}
+{"level":"info","message":"   From: RCCG HRA <info@rccghralekki.com>","service":"churchplus-api","timestamp":"2026-04-08 21:03:42"}
+{"level":"info","message":"✅ SMTP transporter initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 21:03:42"}
+{"level":"info","message":"   Server: rccghralekki.com:465 (SSL)","service":"churchplus-api","timestamp":"2026-04-08 21:03:42"}
+{"level":"info","message":"   From: RCCG HRA <info@rccghralekki.com>","service":"churchplus-api","timestamp":"2026-04-08 21:03:42"}
+{"level":"info","message":"✅ SMTP transporter initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 21:03:42"}
+{"level":"info","message":"   Server: rccghralekki.com:465 (SSL)","service":"churchplus-api","timestamp":"2026-04-08 21:03:42"}
+{"level":"info","message":"   From: RCCG HRA <info@rccghralekki.com>","service":"churchplus-api","timestamp":"2026-04-08 21:03:42"}
+{"level":"info","message":"✅ SMTP transporter initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 21:03:42"}
+{"level":"info","message":"   Server: rccghralekki.com:465 (SSL)","service":"churchplus-api","timestamp":"2026-04-08 21:03:42"}
+{"level":"info","message":"   From: RCCG HRA <info@rccghralekki.com>","service":"churchplus-api","timestamp":"2026-04-08 21:03:42"}
+{"level":"warn","message":"Email configuration incomplete - emails will be logged only","service":"churchplus-api","timestamp":"2026-04-08 21:04:56"}
+{"level":"info","message":"Twilio SMS client initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 21:04:56"}
+{"level":"warn","message":"Email configuration incomplete - emails will be logged only","service":"churchplus-api","timestamp":"2026-04-08 21:04:56"}
+{"level":"info","message":"Twilio SMS client initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 21:04:56"}
+{"level":"info","message":"Push notification service initialized","service":"churchplus-api","timestamp":"2026-04-08 21:04:59"}
+{"level":"warn","message":"Email configuration incomplete - emails will be logged only","service":"churchplus-api","timestamp":"2026-04-08 21:04:59"}
+{"level":"info","message":"Twilio SMS client initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 21:04:59"}
+{"level":"warn","message":"Email configuration incomplete - emails will be logged only","service":"churchplus-api","timestamp":"2026-04-08 21:05:00"}
+{"level":"warn","message":"Email configuration incomplete - emails will be logged only","service":"churchplus-api","timestamp":"2026-04-08 21:05:00"}
+{"level":"warn","message":"Email configuration incomplete - emails will be logged only","service":"churchplus-api","timestamp":"2026-04-08 21:05:02"}
+{"level":"info","message":"Twilio SMS client initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 21:05:02"}
+{"level":"info","message":"🚀 Server running on port 5000 in production mode","service":"churchplus-api","timestamp":"2026-04-08 21:05:02"}
+{"level":"info","message":"📡 API available at http://localhost:5000/api/v1","service":"churchplus-api","timestamp":"2026-04-08 21:05:02"}
+{"level":"info","message":"✅ SMTP transporter initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 21:05:03"}
+{"level":"info","message":"   Server: rccghralekki.com:465 (SSL)","service":"churchplus-api","timestamp":"2026-04-08 21:05:03"}
+{"level":"info","message":"   From: RCCG HRA <info@rccghralekki.com>","service":"churchplus-api","timestamp":"2026-04-08 21:05:03"}
+{"level":"info","message":"✅ SMTP transporter initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 21:05:03"}
+{"level":"info","message":"   Server: rccghralekki.com:465 (SSL)","service":"churchplus-api","timestamp":"2026-04-08 21:05:03"}
+{"level":"info","message":"   From: RCCG HRA <info@rccghralekki.com>","service":"churchplus-api","timestamp":"2026-04-08 21:05:03"}
+{"level":"info","message":"✅ SMTP transporter initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 21:05:03"}
+{"level":"info","message":"   Server: rccghralekki.com:465 (SSL)","service":"churchplus-api","timestamp":"2026-04-08 21:05:03"}
+{"level":"info","message":"   From: RCCG HRA <info@rccghralekki.com>","service":"churchplus-api","timestamp":"2026-04-08 21:05:03"}
+{"level":"info","message":"✅ SMTP transporter initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 21:05:03"}
+{"level":"info","message":"   Server: rccghralekki.com:465 (SSL)","service":"churchplus-api","timestamp":"2026-04-08 21:05:03"}
+{"level":"info","message":"   From: RCCG HRA <info@rccghralekki.com>","service":"churchplus-api","timestamp":"2026-04-08 21:05:03"}
+{"level":"info","message":"✅ SMTP transporter initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 21:05:03"}
+{"level":"info","message":"   Server: rccghralekki.com:465 (SSL)","service":"churchplus-api","timestamp":"2026-04-08 21:05:03"}
+{"level":"info","message":"   From: RCCG HRA <info@rccghralekki.com>","service":"churchplus-api","timestamp":"2026-04-08 21:05:03"}
+{"level":"warn","message":"Email configuration incomplete - emails will be logged only","service":"churchplus-api","timestamp":"2026-04-08 21:11:24"}
+{"level":"info","message":"Twilio SMS client initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 21:11:24"}
+{"level":"warn","message":"Email configuration incomplete - emails will be logged only","service":"churchplus-api","timestamp":"2026-04-08 21:11:24"}
+{"level":"info","message":"Twilio SMS client initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 21:11:24"}
+{"level":"info","message":"Push notification service initialized","service":"churchplus-api","timestamp":"2026-04-08 21:11:28"}
+{"level":"warn","message":"Email configuration incomplete - emails will be logged only","service":"churchplus-api","timestamp":"2026-04-08 21:11:28"}
+{"level":"info","message":"Twilio SMS client initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 21:11:28"}
+{"level":"warn","message":"Email configuration incomplete - emails will be logged only","service":"churchplus-api","timestamp":"2026-04-08 21:11:29"}
+{"level":"warn","message":"Email configuration incomplete - emails will be logged only","service":"churchplus-api","timestamp":"2026-04-08 21:11:29"}
+{"level":"warn","message":"Email configuration incomplete - emails will be logged only","service":"churchplus-api","timestamp":"2026-04-08 21:11:31"}
+{"level":"info","message":"Twilio SMS client initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 21:11:31"}
+{"level":"info","message":"🚀 Server running on port 5000 in production mode","service":"churchplus-api","timestamp":"2026-04-08 21:11:31"}
+{"level":"info","message":"📡 API available at http://localhost:5000/api/v1","service":"churchplus-api","timestamp":"2026-04-08 21:11:31"}
+{"level":"info","message":"✅ SMTP transporter initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 21:11:32"}
+{"level":"info","message":"   Server: rccghralekki.com:465 (SSL)","service":"churchplus-api","timestamp":"2026-04-08 21:11:32"}
+{"level":"info","message":"   From: RCCG HRA <info@rccghralekki.com>","service":"churchplus-api","timestamp":"2026-04-08 21:11:32"}
+{"level":"info","message":"✅ SMTP transporter initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 21:11:32"}
+{"level":"info","message":"   Server: rccghralekki.com:465 (SSL)","service":"churchplus-api","timestamp":"2026-04-08 21:11:32"}
+{"level":"info","message":"   From: RCCG HRA <info@rccghralekki.com>","service":"churchplus-api","timestamp":"2026-04-08 21:11:32"}
+{"level":"info","message":"✅ SMTP transporter initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 21:11:32"}
+{"level":"info","message":"   Server: rccghralekki.com:465 (SSL)","service":"churchplus-api","timestamp":"2026-04-08 21:11:32"}
+{"level":"info","message":"   From: RCCG HRA <info@rccghralekki.com>","service":"churchplus-api","timestamp":"2026-04-08 21:11:32"}
+{"level":"info","message":"✅ SMTP transporter initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 21:11:32"}
+{"level":"info","message":"   Server: rccghralekki.com:465 (SSL)","service":"churchplus-api","timestamp":"2026-04-08 21:11:32"}
+{"level":"info","message":"   From: RCCG HRA <info@rccghralekki.com>","service":"churchplus-api","timestamp":"2026-04-08 21:11:32"}
+{"level":"info","message":"✅ SMTP transporter initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 21:11:32"}
+{"level":"info","message":"   Server: rccghralekki.com:465 (SSL)","service":"churchplus-api","timestamp":"2026-04-08 21:11:32"}
+{"level":"info","message":"   From: RCCG HRA <info@rccghralekki.com>","service":"churchplus-api","timestamp":"2026-04-08 21:11:32"}
+{"level":"warn","message":"Email configuration incomplete - emails will be logged only","service":"churchplus-api","timestamp":"2026-04-08 21:12:06"}
+{"level":"info","message":"Twilio SMS client initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 21:12:06"}
+{"level":"warn","message":"Email configuration incomplete - emails will be logged only","service":"churchplus-api","timestamp":"2026-04-08 21:12:06"}
+{"level":"info","message":"Twilio SMS client initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 21:12:06"}
+{"level":"info","message":"Push notification service initialized","service":"churchplus-api","timestamp":"2026-04-08 21:12:10"}
+{"level":"warn","message":"Email configuration incomplete - emails will be logged only","service":"churchplus-api","timestamp":"2026-04-08 21:12:10"}
+{"level":"info","message":"Twilio SMS client initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 21:12:10"}
+{"level":"warn","message":"Email configuration incomplete - emails will be logged only","service":"churchplus-api","timestamp":"2026-04-08 21:12:10"}
+{"level":"warn","message":"Email configuration incomplete - emails will be logged only","service":"churchplus-api","timestamp":"2026-04-08 21:12:10"}
+{"level":"warn","message":"Email configuration incomplete - emails will be logged only","service":"churchplus-api","timestamp":"2026-04-08 21:12:13"}
+{"level":"info","message":"Twilio SMS client initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 21:12:13"}
+{"level":"info","message":"🚀 Server running on port 5000 in production mode","service":"churchplus-api","timestamp":"2026-04-08 21:12:13"}
+{"level":"info","message":"📡 API available at http://localhost:5000/api/v1","service":"churchplus-api","timestamp":"2026-04-08 21:12:13"}
+{"level":"info","message":"✅ SMTP transporter initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 21:12:14"}
+{"level":"info","message":"   Server: rccghralekki.com:465 (SSL)","service":"churchplus-api","timestamp":"2026-04-08 21:12:14"}
+{"level":"info","message":"   From: RCCG HRA <info@rccghralekki.com>","service":"churchplus-api","timestamp":"2026-04-08 21:12:14"}
+{"level":"info","message":"✅ SMTP transporter initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 21:12:14"}
+{"level":"info","message":"   Server: rccghralekki.com:465 (SSL)","service":"churchplus-api","timestamp":"2026-04-08 21:12:14"}
+{"level":"info","message":"   From: RCCG HRA <info@rccghralekki.com>","service":"churchplus-api","timestamp":"2026-04-08 21:12:14"}
+{"level":"info","message":"✅ SMTP transporter initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 21:12:14"}
+{"level":"info","message":"   Server: rccghralekki.com:465 (SSL)","service":"churchplus-api","timestamp":"2026-04-08 21:12:14"}
+{"level":"info","message":"   From: RCCG HRA <info@rccghralekki.com>","service":"churchplus-api","timestamp":"2026-04-08 21:12:14"}
+{"level":"info","message":"✅ SMTP transporter initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 21:12:14"}
+{"level":"info","message":"   Server: rccghralekki.com:465 (SSL)","service":"churchplus-api","timestamp":"2026-04-08 21:12:14"}
+{"level":"info","message":"   From: RCCG HRA <info@rccghralekki.com>","service":"churchplus-api","timestamp":"2026-04-08 21:12:14"}
+{"level":"info","message":"✅ SMTP transporter initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 21:12:14"}
+{"level":"info","message":"   Server: rccghralekki.com:465 (SSL)","service":"churchplus-api","timestamp":"2026-04-08 21:12:14"}
+{"level":"info","message":"   From: RCCG HRA <info@rccghralekki.com>","service":"churchplus-api","timestamp":"2026-04-08 21:12:14"}
+{"level":"warn","message":"Email configuration incomplete - emails will be logged only","service":"churchplus-api","timestamp":"2026-04-08 21:13:19"}
+{"level":"info","message":"Twilio SMS client initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 21:13:19"}
+{"level":"warn","message":"Email configuration incomplete - emails will be logged only","service":"churchplus-api","timestamp":"2026-04-08 21:13:19"}
+{"level":"info","message":"Twilio SMS client initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 21:13:19"}
+{"level":"info","message":"Push notification service initialized","service":"churchplus-api","timestamp":"2026-04-08 21:13:33"}
+{"level":"warn","message":"Email configuration incomplete - emails will be logged only","service":"churchplus-api","timestamp":"2026-04-08 21:13:34"}
+{"level":"info","message":"Twilio SMS client initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 21:13:34"}
+{"level":"warn","message":"Email configuration incomplete - emails will be logged only","service":"churchplus-api","timestamp":"2026-04-08 21:13:35"}
+{"level":"warn","message":"Email configuration incomplete - emails will be logged only","service":"churchplus-api","timestamp":"2026-04-08 21:13:35"}
+{"level":"warn","message":"Email configuration incomplete - emails will be logged only","service":"churchplus-api","timestamp":"2026-04-08 21:13:42"}
+{"level":"info","message":"Twilio SMS client initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 21:13:42"}
+{"level":"info","message":"🚀 Server running on port 5000 in production mode","service":"churchplus-api","timestamp":"2026-04-08 21:13:42"}
+{"level":"info","message":"📡 API available at http://localhost:5000/api/v1","service":"churchplus-api","timestamp":"2026-04-08 21:13:42"}
+{"level":"info","message":"✅ SMTP transporter initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 21:13:44"}
+{"level":"info","message":"   Server: rccghralekki.com:465 (SSL)","service":"churchplus-api","timestamp":"2026-04-08 21:13:44"}
+{"level":"info","message":"   From: RCCG HRA <info@rccghralekki.com>","service":"churchplus-api","timestamp":"2026-04-08 21:13:44"}
+{"level":"info","message":"✅ SMTP transporter initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 21:13:44"}
+{"level":"info","message":"   Server: rccghralekki.com:465 (SSL)","service":"churchplus-api","timestamp":"2026-04-08 21:13:44"}
+{"level":"info","message":"   From: RCCG HRA <info@rccghralekki.com>","service":"churchplus-api","timestamp":"2026-04-08 21:13:44"}
+{"level":"info","message":"✅ SMTP transporter initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 21:13:44"}
+{"level":"info","message":"   Server: rccghralekki.com:465 (SSL)","service":"churchplus-api","timestamp":"2026-04-08 21:13:44"}
+{"level":"info","message":"   From: RCCG HRA <info@rccghralekki.com>","service":"churchplus-api","timestamp":"2026-04-08 21:13:44"}
+{"level":"info","message":"✅ SMTP transporter initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 21:13:44"}
+{"level":"info","message":"   Server: rccghralekki.com:465 (SSL)","service":"churchplus-api","timestamp":"2026-04-08 21:13:44"}
+{"level":"info","message":"   From: RCCG HRA <info@rccghralekki.com>","service":"churchplus-api","timestamp":"2026-04-08 21:13:44"}
+{"level":"info","message":"✅ SMTP transporter initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 21:13:44"}
+{"level":"info","message":"   Server: rccghralekki.com:465 (SSL)","service":"churchplus-api","timestamp":"2026-04-08 21:13:44"}
+{"level":"info","message":"   From: RCCG HRA <info@rccghralekki.com>","service":"churchplus-api","timestamp":"2026-04-08 21:13:44"}
+{"level":"warn","message":"Email configuration incomplete - emails will be logged only","service":"churchplus-api","timestamp":"2026-04-08 21:15:58"}
+{"level":"info","message":"Twilio SMS client initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 21:15:58"}
+{"level":"warn","message":"Email configuration incomplete - emails will be logged only","service":"churchplus-api","timestamp":"2026-04-08 21:15:58"}
+{"level":"info","message":"Twilio SMS client initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 21:15:58"}
+{"level":"info","message":"Push notification service initialized","service":"churchplus-api","timestamp":"2026-04-08 21:16:02"}
+{"level":"warn","message":"Email configuration incomplete - emails will be logged only","service":"churchplus-api","timestamp":"2026-04-08 21:16:03"}
+{"level":"info","message":"Twilio SMS client initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 21:16:03"}
+{"level":"warn","message":"Email configuration incomplete - emails will be logged only","service":"churchplus-api","timestamp":"2026-04-08 21:16:03"}
+{"level":"warn","message":"Email configuration incomplete - emails will be logged only","service":"churchplus-api","timestamp":"2026-04-08 21:16:03"}
+{"level":"warn","message":"Email configuration incomplete - emails will be logged only","service":"churchplus-api","timestamp":"2026-04-08 21:16:05"}
+{"level":"info","message":"Twilio SMS client initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 21:16:05"}
+{"level":"info","message":"🚀 Server running on port 5000 in production mode","service":"churchplus-api","timestamp":"2026-04-08 21:16:05"}
+{"level":"info","message":"📡 API available at http://localhost:5000/api/v1","service":"churchplus-api","timestamp":"2026-04-08 21:16:05"}
+{"level":"info","message":"✅ SMTP transporter initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 21:16:06"}
+{"level":"info","message":"   Server: rccghralekki.com:465 (SSL)","service":"churchplus-api","timestamp":"2026-04-08 21:16:06"}
+{"level":"info","message":"   From: RCCG HRA <info@rccghralekki.com>","service":"churchplus-api","timestamp":"2026-04-08 21:16:06"}
+{"level":"info","message":"✅ SMTP transporter initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 21:16:06"}
+{"level":"info","message":"   Server: rccghralekki.com:465 (SSL)","service":"churchplus-api","timestamp":"2026-04-08 21:16:06"}
+{"level":"info","message":"   From: RCCG HRA <info@rccghralekki.com>","service":"churchplus-api","timestamp":"2026-04-08 21:16:06"}
+{"level":"info","message":"✅ SMTP transporter initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 21:16:06"}
+{"level":"info","message":"   Server: rccghralekki.com:465 (SSL)","service":"churchplus-api","timestamp":"2026-04-08 21:16:06"}
+{"level":"info","message":"   From: RCCG HRA <info@rccghralekki.com>","service":"churchplus-api","timestamp":"2026-04-08 21:16:06"}
+{"level":"info","message":"✅ SMTP transporter initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 21:16:06"}
+{"level":"info","message":"   Server: rccghralekki.com:465 (SSL)","service":"churchplus-api","timestamp":"2026-04-08 21:16:06"}
+{"level":"info","message":"   From: RCCG HRA <info@rccghralekki.com>","service":"churchplus-api","timestamp":"2026-04-08 21:16:06"}
+{"level":"info","message":"✅ SMTP transporter initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 21:16:06"}
+{"level":"info","message":"   Server: rccghralekki.com:465 (SSL)","service":"churchplus-api","timestamp":"2026-04-08 21:16:06"}
+{"level":"info","message":"   From: RCCG HRA <info@rccghralekki.com>","service":"churchplus-api","timestamp":"2026-04-08 21:16:06"}
+{"level":"warn","message":"Email configuration incomplete - emails will be logged only","service":"churchplus-api","timestamp":"2026-04-08 21:17:20"}
+{"level":"info","message":"Twilio SMS client initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 21:17:20"}
+{"level":"warn","message":"Email configuration incomplete - emails will be logged only","service":"churchplus-api","timestamp":"2026-04-08 21:17:20"}
+{"level":"info","message":"Twilio SMS client initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 21:17:20"}
+{"level":"info","message":"Push notification service initialized","service":"churchplus-api","timestamp":"2026-04-08 21:17:22"}
+{"level":"warn","message":"Email configuration incomplete - emails will be logged only","service":"churchplus-api","timestamp":"2026-04-08 21:17:23"}
+{"level":"info","message":"Twilio SMS client initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 21:17:23"}
+{"level":"warn","message":"Email configuration incomplete - emails will be logged only","service":"churchplus-api","timestamp":"2026-04-08 21:17:23"}
+{"level":"warn","message":"Email configuration incomplete - emails will be logged only","service":"churchplus-api","timestamp":"2026-04-08 21:17:23"}
+{"level":"warn","message":"Email configuration incomplete - emails will be logged only","service":"churchplus-api","timestamp":"2026-04-08 21:17:25"}
+{"level":"info","message":"Twilio SMS client initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 21:17:25"}
+{"level":"info","message":"🚀 Server running on port 5000 in production mode","service":"churchplus-api","timestamp":"2026-04-08 21:17:25"}
+{"level":"info","message":"📡 API available at http://localhost:5000/api/v1","service":"churchplus-api","timestamp":"2026-04-08 21:17:25"}
+{"level":"info","message":"✅ SMTP transporter initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 21:17:26"}
+{"level":"info","message":"   Server: rccghralekki.com:465 (SSL)","service":"churchplus-api","timestamp":"2026-04-08 21:17:26"}
+{"level":"info","message":"   From: RCCG HRA <info@rccghralekki.com>","service":"churchplus-api","timestamp":"2026-04-08 21:17:26"}
+{"level":"info","message":"✅ SMTP transporter initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 21:17:26"}
+{"level":"info","message":"   Server: rccghralekki.com:465 (SSL)","service":"churchplus-api","timestamp":"2026-04-08 21:17:26"}
+{"level":"info","message":"   From: RCCG HRA <info@rccghralekki.com>","service":"churchplus-api","timestamp":"2026-04-08 21:17:26"}
+{"level":"info","message":"✅ SMTP transporter initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 21:17:26"}
+{"level":"info","message":"   Server: rccghralekki.com:465 (SSL)","service":"churchplus-api","timestamp":"2026-04-08 21:17:26"}
+{"level":"info","message":"   From: RCCG HRA <info@rccghralekki.com>","service":"churchplus-api","timestamp":"2026-04-08 21:17:26"}
+{"level":"info","message":"✅ SMTP transporter initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 21:17:26"}
+{"level":"info","message":"   Server: rccghralekki.com:465 (SSL)","service":"churchplus-api","timestamp":"2026-04-08 21:17:26"}
+{"level":"info","message":"   From: RCCG HRA <info@rccghralekki.com>","service":"churchplus-api","timestamp":"2026-04-08 21:17:26"}
+{"level":"info","message":"✅ SMTP transporter initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 21:17:26"}
+{"level":"info","message":"   Server: rccghralekki.com:465 (SSL)","service":"churchplus-api","timestamp":"2026-04-08 21:17:26"}
+{"level":"info","message":"   From: RCCG HRA <info@rccghralekki.com>","service":"churchplus-api","timestamp":"2026-04-08 21:17:26"}
+{"level":"warn","message":"Email configuration incomplete - emails will be logged only","service":"churchplus-api","timestamp":"2026-04-08 21:20:21"}
+{"level":"info","message":"Twilio SMS client initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 21:20:21"}
+{"level":"warn","message":"Email configuration incomplete - emails will be logged only","service":"churchplus-api","timestamp":"2026-04-08 21:20:21"}
+{"level":"info","message":"Twilio SMS client initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 21:20:21"}
+{"level":"info","message":"Push notification service initialized","service":"churchplus-api","timestamp":"2026-04-08 21:20:27"}
+{"level":"warn","message":"Email configuration incomplete - emails will be logged only","service":"churchplus-api","timestamp":"2026-04-08 21:20:27"}
+{"level":"info","message":"Twilio SMS client initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 21:20:27"}
+{"level":"warn","message":"Email configuration incomplete - emails will be logged only","service":"churchplus-api","timestamp":"2026-04-08 21:20:28"}
+{"level":"warn","message":"Email configuration incomplete - emails will be logged only","service":"churchplus-api","timestamp":"2026-04-08 21:20:28"}
+{"level":"warn","message":"Email configuration incomplete - emails will be logged only","service":"churchplus-api","timestamp":"2026-04-08 21:20:34"}
+{"level":"info","message":"Twilio SMS client initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 21:20:34"}
+{"level":"info","message":"🚀 Server running on port 5000 in production mode","service":"churchplus-api","timestamp":"2026-04-08 21:20:34"}
+{"level":"info","message":"📡 API available at http://localhost:5000/api/v1","service":"churchplus-api","timestamp":"2026-04-08 21:20:34"}
+{"level":"info","message":"✅ SMTP transporter initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 21:20:36"}
+{"level":"info","message":"   Server: rccghralekki.com:465 (SSL)","service":"churchplus-api","timestamp":"2026-04-08 21:20:36"}
+{"level":"info","message":"   From: RCCG HRA <info@rccghralekki.com>","service":"churchplus-api","timestamp":"2026-04-08 21:20:36"}
+{"level":"info","message":"✅ SMTP transporter initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 21:20:36"}
+{"level":"info","message":"   Server: rccghralekki.com:465 (SSL)","service":"churchplus-api","timestamp":"2026-04-08 21:20:36"}
+{"level":"info","message":"   From: RCCG HRA <info@rccghralekki.com>","service":"churchplus-api","timestamp":"2026-04-08 21:20:36"}
+{"level":"info","message":"✅ SMTP transporter initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 21:20:36"}
+{"level":"info","message":"   Server: rccghralekki.com:465 (SSL)","service":"churchplus-api","timestamp":"2026-04-08 21:20:36"}
+{"level":"info","message":"   From: RCCG HRA <info@rccghralekki.com>","service":"churchplus-api","timestamp":"2026-04-08 21:20:36"}
+{"level":"info","message":"✅ SMTP transporter initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 21:20:36"}
+{"level":"info","message":"   Server: rccghralekki.com:465 (SSL)","service":"churchplus-api","timestamp":"2026-04-08 21:20:36"}
+{"level":"info","message":"   From: RCCG HRA <info@rccghralekki.com>","service":"churchplus-api","timestamp":"2026-04-08 21:20:36"}
+{"level":"info","message":"✅ SMTP transporter initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 21:20:36"}
+{"level":"info","message":"   Server: rccghralekki.com:465 (SSL)","service":"churchplus-api","timestamp":"2026-04-08 21:20:36"}
+{"level":"info","message":"   From: RCCG HRA <info@rccghralekki.com>","service":"churchplus-api","timestamp":"2026-04-08 21:20:36"}
+{"level":"warn","message":"Email configuration incomplete - emails will be logged only","service":"churchplus-api","timestamp":"2026-04-08 21:20:59"}
+{"level":"info","message":"Twilio SMS client initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 21:20:59"}
+{"level":"warn","message":"Email configuration incomplete - emails will be logged only","service":"churchplus-api","timestamp":"2026-04-08 21:20:59"}
+{"level":"info","message":"Twilio SMS client initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 21:20:59"}
+{"level":"info","message":"Push notification service initialized","service":"churchplus-api","timestamp":"2026-04-08 21:21:02"}
+{"level":"warn","message":"Email configuration incomplete - emails will be logged only","service":"churchplus-api","timestamp":"2026-04-08 21:21:03"}
+{"level":"info","message":"Twilio SMS client initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 21:21:03"}
+{"level":"warn","message":"Email configuration incomplete - emails will be logged only","service":"churchplus-api","timestamp":"2026-04-08 21:21:03"}
+{"level":"warn","message":"Email configuration incomplete - emails will be logged only","service":"churchplus-api","timestamp":"2026-04-08 21:21:03"}
+{"level":"warn","message":"Email configuration incomplete - emails will be logged only","service":"churchplus-api","timestamp":"2026-04-08 21:21:06"}
+{"level":"info","message":"Twilio SMS client initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 21:21:06"}
+{"level":"info","message":"🚀 Server running on port 5000 in production mode","service":"churchplus-api","timestamp":"2026-04-08 21:21:06"}
+{"level":"info","message":"📡 API available at http://localhost:5000/api/v1","service":"churchplus-api","timestamp":"2026-04-08 21:21:06"}
+{"level":"info","message":"✅ SMTP transporter initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 21:21:08"}
+{"level":"info","message":"   Server: rccghralekki.com:465 (SSL)","service":"churchplus-api","timestamp":"2026-04-08 21:21:08"}
+{"level":"info","message":"   From: RCCG HRA <info@rccghralekki.com>","service":"churchplus-api","timestamp":"2026-04-08 21:21:08"}
+{"level":"info","message":"✅ SMTP transporter initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 21:21:08"}
+{"level":"info","message":"   Server: rccghralekki.com:465 (SSL)","service":"churchplus-api","timestamp":"2026-04-08 21:21:08"}
+{"level":"info","message":"   From: RCCG HRA <info@rccghralekki.com>","service":"churchplus-api","timestamp":"2026-04-08 21:21:08"}
+{"level":"info","message":"✅ SMTP transporter initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 21:21:08"}
+{"level":"info","message":"   Server: rccghralekki.com:465 (SSL)","service":"churchplus-api","timestamp":"2026-04-08 21:21:08"}
+{"level":"info","message":"   From: RCCG HRA <info@rccghralekki.com>","service":"churchplus-api","timestamp":"2026-04-08 21:21:08"}
+{"level":"info","message":"✅ SMTP transporter initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 21:21:08"}
+{"level":"info","message":"   Server: rccghralekki.com:465 (SSL)","service":"churchplus-api","timestamp":"2026-04-08 21:21:08"}
+{"level":"info","message":"   From: RCCG HRA <info@rccghralekki.com>","service":"churchplus-api","timestamp":"2026-04-08 21:21:08"}
+{"level":"info","message":"✅ SMTP transporter initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 21:21:08"}
+{"level":"info","message":"   Server: rccghralekki.com:465 (SSL)","service":"churchplus-api","timestamp":"2026-04-08 21:21:08"}
+{"level":"info","message":"   From: RCCG HRA <info@rccghralekki.com>","service":"churchplus-api","timestamp":"2026-04-08 21:21:08"}
+{"level":"warn","message":"Email configuration incomplete - emails will be logged only","service":"churchplus-api","timestamp":"2026-04-08 21:22:15"}
+{"level":"info","message":"Twilio SMS client initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 21:22:15"}
+{"level":"warn","message":"Email configuration incomplete - emails will be logged only","service":"churchplus-api","timestamp":"2026-04-08 21:22:15"}
+{"level":"info","message":"Twilio SMS client initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 21:22:15"}
+{"level":"info","message":"Push notification service initialized","service":"churchplus-api","timestamp":"2026-04-08 21:22:24"}
+{"level":"warn","message":"Email configuration incomplete - emails will be logged only","service":"churchplus-api","timestamp":"2026-04-08 21:22:24"}
+{"level":"info","message":"Twilio SMS client initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 21:22:24"}
+{"level":"warn","message":"Email configuration incomplete - emails will be logged only","service":"churchplus-api","timestamp":"2026-04-08 21:22:26"}
+{"level":"warn","message":"Email configuration incomplete - emails will be logged only","service":"churchplus-api","timestamp":"2026-04-08 21:22:26"}
+{"level":"warn","message":"Email configuration incomplete - emails will be logged only","service":"churchplus-api","timestamp":"2026-04-08 21:22:31"}
+{"level":"info","message":"Twilio SMS client initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 21:22:31"}
+{"level":"info","message":"🚀 Server running on port 5000 in production mode","service":"churchplus-api","timestamp":"2026-04-08 21:22:31"}
+{"level":"info","message":"📡 API available at http://localhost:5000/api/v1","service":"churchplus-api","timestamp":"2026-04-08 21:22:31"}
+{"level":"info","message":"✅ SMTP transporter initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 21:22:32"}
+{"level":"info","message":"   Server: rccghralekki.com:465 (SSL)","service":"churchplus-api","timestamp":"2026-04-08 21:22:32"}
+{"level":"info","message":"   From: RCCG HRA <info@rccghralekki.com>","service":"churchplus-api","timestamp":"2026-04-08 21:22:32"}
+{"level":"info","message":"✅ SMTP transporter initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 21:22:32"}
+{"level":"info","message":"   Server: rccghralekki.com:465 (SSL)","service":"churchplus-api","timestamp":"2026-04-08 21:22:32"}
+{"level":"info","message":"   From: RCCG HRA <info@rccghralekki.com>","service":"churchplus-api","timestamp":"2026-04-08 21:22:32"}
+{"level":"info","message":"✅ SMTP transporter initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 21:22:32"}
+{"level":"info","message":"   Server: rccghralekki.com:465 (SSL)","service":"churchplus-api","timestamp":"2026-04-08 21:22:32"}
+{"level":"info","message":"   From: RCCG HRA <info@rccghralekki.com>","service":"churchplus-api","timestamp":"2026-04-08 21:22:32"}
+{"level":"info","message":"✅ SMTP transporter initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 21:22:32"}
+{"level":"info","message":"   Server: rccghralekki.com:465 (SSL)","service":"churchplus-api","timestamp":"2026-04-08 21:22:32"}
+{"level":"info","message":"   From: RCCG HRA <info@rccghralekki.com>","service":"churchplus-api","timestamp":"2026-04-08 21:22:32"}
+{"level":"info","message":"✅ SMTP transporter initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 21:22:32"}
+{"level":"info","message":"   Server: rccghralekki.com:465 (SSL)","service":"churchplus-api","timestamp":"2026-04-08 21:22:32"}
+{"level":"info","message":"   From: RCCG HRA <info@rccghralekki.com>","service":"churchplus-api","timestamp":"2026-04-08 21:22:32"}
+{"level":"warn","message":"Email configuration incomplete - emails will be logged only","service":"churchplus-api","timestamp":"2026-04-08 21:28:05"}
+{"level":"info","message":"Twilio SMS client initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 21:28:05"}
+{"level":"warn","message":"Email configuration incomplete - emails will be logged only","service":"churchplus-api","timestamp":"2026-04-08 21:28:05"}
+{"level":"info","message":"Twilio SMS client initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 21:28:05"}
+{"level":"info","message":"Push notification service initialized","service":"churchplus-api","timestamp":"2026-04-08 21:28:14"}
+{"level":"warn","message":"Email configuration incomplete - emails will be logged only","service":"churchplus-api","timestamp":"2026-04-08 21:28:14"}
+{"level":"info","message":"Twilio SMS client initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 21:28:14"}
+{"level":"warn","message":"Email configuration incomplete - emails will be logged only","service":"churchplus-api","timestamp":"2026-04-08 21:28:14"}
+{"level":"warn","message":"Email configuration incomplete - emails will be logged only","service":"churchplus-api","timestamp":"2026-04-08 21:28:14"}
+{"level":"warn","message":"Email configuration incomplete - emails will be logged only","service":"churchplus-api","timestamp":"2026-04-08 21:28:18"}
+{"level":"info","message":"Twilio SMS client initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 21:28:18"}
+{"level":"info","message":"🚀 Server running on port 5000 in production mode","service":"churchplus-api","timestamp":"2026-04-08 21:28:18"}
+{"level":"info","message":"📡 API available at http://localhost:5000/api/v1","service":"churchplus-api","timestamp":"2026-04-08 21:28:18"}
+{"level":"info","message":"✅ SMTP transporter initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 21:28:20"}
+{"level":"info","message":"   Server: rccghralekki.com:465 (SSL)","service":"churchplus-api","timestamp":"2026-04-08 21:28:20"}
+{"level":"info","message":"   From: RCCG HRA <info@rccghralekki.com>","service":"churchplus-api","timestamp":"2026-04-08 21:28:20"}
+{"level":"info","message":"✅ SMTP transporter initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 21:28:20"}
+{"level":"info","message":"   Server: rccghralekki.com:465 (SSL)","service":"churchplus-api","timestamp":"2026-04-08 21:28:20"}
+{"level":"info","message":"   From: RCCG HRA <info@rccghralekki.com>","service":"churchplus-api","timestamp":"2026-04-08 21:28:20"}
+{"level":"info","message":"✅ SMTP transporter initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 21:28:20"}
+{"level":"info","message":"   Server: rccghralekki.com:465 (SSL)","service":"churchplus-api","timestamp":"2026-04-08 21:28:20"}
+{"level":"info","message":"   From: RCCG HRA <info@rccghralekki.com>","service":"churchplus-api","timestamp":"2026-04-08 21:28:20"}
+{"level":"info","message":"✅ SMTP transporter initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 21:28:20"}
+{"level":"info","message":"   Server: rccghralekki.com:465 (SSL)","service":"churchplus-api","timestamp":"2026-04-08 21:28:20"}
+{"level":"info","message":"   From: RCCG HRA <info@rccghralekki.com>","service":"churchplus-api","timestamp":"2026-04-08 21:28:20"}
+{"level":"info","message":"✅ SMTP transporter initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 21:28:20"}
+{"level":"info","message":"   Server: rccghralekki.com:465 (SSL)","service":"churchplus-api","timestamp":"2026-04-08 21:28:20"}
+{"level":"info","message":"   From: RCCG HRA <info@rccghralekki.com>","service":"churchplus-api","timestamp":"2026-04-08 21:28:20"}
+{"level":"warn","message":"Email configuration incomplete - emails will be logged only","service":"churchplus-api","timestamp":"2026-04-08 21:36:18"}
+{"level":"info","message":"Twilio SMS client initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 21:36:18"}
+{"level":"warn","message":"Email configuration incomplete - emails will be logged only","service":"churchplus-api","timestamp":"2026-04-08 21:36:18"}
+{"level":"info","message":"Twilio SMS client initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 21:36:18"}
+{"level":"info","message":"Push notification service initialized","service":"churchplus-api","timestamp":"2026-04-08 21:36:21"}
+{"level":"warn","message":"Email configuration incomplete - emails will be logged only","service":"churchplus-api","timestamp":"2026-04-08 21:36:21"}
+{"level":"info","message":"Twilio SMS client initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 21:36:21"}
+{"level":"warn","message":"Email configuration incomplete - emails will be logged only","service":"churchplus-api","timestamp":"2026-04-08 21:36:22"}
+{"level":"warn","message":"Email configuration incomplete - emails will be logged only","service":"churchplus-api","timestamp":"2026-04-08 21:36:22"}
+{"level":"warn","message":"Email configuration incomplete - emails will be logged only","service":"churchplus-api","timestamp":"2026-04-08 21:36:25"}
+{"level":"info","message":"Twilio SMS client initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 21:36:25"}
+{"level":"info","message":"🚀 Server running on port 5000 in production mode","service":"churchplus-api","timestamp":"2026-04-08 21:36:25"}
+{"level":"info","message":"📡 API available at http://localhost:5000/api/v1","service":"churchplus-api","timestamp":"2026-04-08 21:36:25"}
+{"level":"info","message":"✅ SMTP transporter initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 21:36:26"}
+{"level":"info","message":"   Server: rccghralekki.com:465 (SSL)","service":"churchplus-api","timestamp":"2026-04-08 21:36:26"}
+{"level":"info","message":"   From: RCCG HRA <info@rccghralekki.com>","service":"churchplus-api","timestamp":"2026-04-08 21:36:26"}
+{"level":"info","message":"✅ SMTP transporter initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 21:36:26"}
+{"level":"info","message":"   Server: rccghralekki.com:465 (SSL)","service":"churchplus-api","timestamp":"2026-04-08 21:36:26"}
+{"level":"info","message":"   From: RCCG HRA <info@rccghralekki.com>","service":"churchplus-api","timestamp":"2026-04-08 21:36:26"}
+{"level":"info","message":"✅ SMTP transporter initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 21:36:26"}
+{"level":"info","message":"   Server: rccghralekki.com:465 (SSL)","service":"churchplus-api","timestamp":"2026-04-08 21:36:26"}
+{"level":"info","message":"   From: RCCG HRA <info@rccghralekki.com>","service":"churchplus-api","timestamp":"2026-04-08 21:36:26"}
+{"level":"info","message":"✅ SMTP transporter initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 21:36:26"}
+{"level":"info","message":"   Server: rccghralekki.com:465 (SSL)","service":"churchplus-api","timestamp":"2026-04-08 21:36:26"}
+{"level":"info","message":"   From: RCCG HRA <info@rccghralekki.com>","service":"churchplus-api","timestamp":"2026-04-08 21:36:26"}
+{"level":"info","message":"✅ SMTP transporter initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 21:36:26"}
+{"level":"info","message":"   Server: rccghralekki.com:465 (SSL)","service":"churchplus-api","timestamp":"2026-04-08 21:36:26"}
+{"level":"info","message":"   From: RCCG HRA <info@rccghralekki.com>","service":"churchplus-api","timestamp":"2026-04-08 21:36:26"}
+{"level":"warn","message":"Email configuration incomplete - emails will be logged only","service":"churchplus-api","timestamp":"2026-04-08 21:57:21"}
+{"level":"info","message":"Twilio SMS client initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 21:57:21"}
+{"level":"warn","message":"Email configuration incomplete - emails will be logged only","service":"churchplus-api","timestamp":"2026-04-08 21:57:21"}
+{"level":"info","message":"Twilio SMS client initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 21:57:21"}
+{"level":"info","message":"Push notification service initialized","service":"churchplus-api","timestamp":"2026-04-08 21:57:25"}
+{"level":"warn","message":"Email configuration incomplete - emails will be logged only","service":"churchplus-api","timestamp":"2026-04-08 21:57:25"}
+{"level":"info","message":"Twilio SMS client initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 21:57:25"}
+{"level":"warn","message":"Email configuration incomplete - emails will be logged only","service":"churchplus-api","timestamp":"2026-04-08 21:57:25"}
+{"level":"warn","message":"Email configuration incomplete - emails will be logged only","service":"churchplus-api","timestamp":"2026-04-08 21:57:25"}
+{"level":"warn","message":"Email configuration incomplete - emails will be logged only","service":"churchplus-api","timestamp":"2026-04-08 21:57:28"}
+{"level":"info","message":"Twilio SMS client initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 21:57:28"}
+{"level":"info","message":"🚀 Server running on port 5000 in production mode","service":"churchplus-api","timestamp":"2026-04-08 21:57:28"}
+{"level":"info","message":"📡 API available at http://localhost:5000/api/v1","service":"churchplus-api","timestamp":"2026-04-08 21:57:28"}
+{"level":"info","message":"✅ SMTP transporter initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 21:57:29"}
+{"level":"info","message":"   Server: rccghralekki.com:465 (SSL)","service":"churchplus-api","timestamp":"2026-04-08 21:57:29"}
+{"level":"info","message":"   From: RCCG HRA <info@rccghralekki.com>","service":"churchplus-api","timestamp":"2026-04-08 21:57:29"}
+{"level":"info","message":"✅ SMTP transporter initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 21:57:29"}
+{"level":"info","message":"   Server: rccghralekki.com:465 (SSL)","service":"churchplus-api","timestamp":"2026-04-08 21:57:29"}
+{"level":"info","message":"   From: RCCG HRA <info@rccghralekki.com>","service":"churchplus-api","timestamp":"2026-04-08 21:57:29"}
+{"level":"info","message":"✅ SMTP transporter initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 21:57:29"}
+{"level":"info","message":"   Server: rccghralekki.com:465 (SSL)","service":"churchplus-api","timestamp":"2026-04-08 21:57:29"}
+{"level":"info","message":"   From: RCCG HRA <info@rccghralekki.com>","service":"churchplus-api","timestamp":"2026-04-08 21:57:29"}
+{"level":"info","message":"✅ SMTP transporter initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 21:57:29"}
+{"level":"info","message":"   Server: rccghralekki.com:465 (SSL)","service":"churchplus-api","timestamp":"2026-04-08 21:57:29"}
+{"level":"info","message":"   From: RCCG HRA <info@rccghralekki.com>","service":"churchplus-api","timestamp":"2026-04-08 21:57:29"}
+{"level":"info","message":"✅ SMTP transporter initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 21:57:29"}
+{"level":"info","message":"   Server: rccghralekki.com:465 (SSL)","service":"churchplus-api","timestamp":"2026-04-08 21:57:29"}
+{"level":"info","message":"   From: RCCG HRA <info@rccghralekki.com>","service":"churchplus-api","timestamp":"2026-04-08 21:57:29"}
+{"level":"warn","message":"Email configuration incomplete - emails will be logged only","service":"churchplus-api","timestamp":"2026-04-08 21:58:13"}
+{"level":"info","message":"Twilio SMS client initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 21:58:13"}
+{"level":"warn","message":"Email configuration incomplete - emails will be logged only","service":"churchplus-api","timestamp":"2026-04-08 21:58:13"}
+{"level":"info","message":"Twilio SMS client initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 21:58:13"}
+{"level":"info","message":"Push notification service initialized","service":"churchplus-api","timestamp":"2026-04-08 21:58:16"}
+{"level":"warn","message":"Email configuration incomplete - emails will be logged only","service":"churchplus-api","timestamp":"2026-04-08 21:58:16"}
+{"level":"info","message":"Twilio SMS client initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 21:58:16"}
+{"level":"warn","message":"Email configuration incomplete - emails will be logged only","service":"churchplus-api","timestamp":"2026-04-08 21:58:16"}
+{"level":"warn","message":"Email configuration incomplete - emails will be logged only","service":"churchplus-api","timestamp":"2026-04-08 21:58:16"}
+{"level":"warn","message":"Email configuration incomplete - emails will be logged only","service":"churchplus-api","timestamp":"2026-04-08 21:58:21"}
+{"level":"info","message":"Twilio SMS client initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 21:58:21"}
+{"level":"info","message":"🚀 Server running on port 5000 in production mode","service":"churchplus-api","timestamp":"2026-04-08 21:58:21"}
+{"level":"info","message":"📡 API available at http://localhost:5000/api/v1","service":"churchplus-api","timestamp":"2026-04-08 21:58:21"}
+{"level":"info","message":"✅ SMTP transporter initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 21:58:22"}
+{"level":"info","message":"   Server: rccghralekki.com:465 (SSL)","service":"churchplus-api","timestamp":"2026-04-08 21:58:22"}
+{"level":"info","message":"   From: RCCG HRA <info@rccghralekki.com>","service":"churchplus-api","timestamp":"2026-04-08 21:58:22"}
+{"level":"info","message":"✅ SMTP transporter initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 21:58:22"}
+{"level":"info","message":"   Server: rccghralekki.com:465 (SSL)","service":"churchplus-api","timestamp":"2026-04-08 21:58:22"}
+{"level":"info","message":"   From: RCCG HRA <info@rccghralekki.com>","service":"churchplus-api","timestamp":"2026-04-08 21:58:22"}
+{"level":"info","message":"✅ SMTP transporter initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 21:58:22"}
+{"level":"info","message":"   Server: rccghralekki.com:465 (SSL)","service":"churchplus-api","timestamp":"2026-04-08 21:58:22"}
+{"level":"info","message":"   From: RCCG HRA <info@rccghralekki.com>","service":"churchplus-api","timestamp":"2026-04-08 21:58:22"}
+{"level":"info","message":"✅ SMTP transporter initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 21:58:22"}
+{"level":"info","message":"   Server: rccghralekki.com:465 (SSL)","service":"churchplus-api","timestamp":"2026-04-08 21:58:22"}
+{"level":"info","message":"   From: RCCG HRA <info@rccghralekki.com>","service":"churchplus-api","timestamp":"2026-04-08 21:58:22"}
+{"level":"info","message":"✅ SMTP transporter initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 21:58:22"}
+{"level":"info","message":"   Server: rccghralekki.com:465 (SSL)","service":"churchplus-api","timestamp":"2026-04-08 21:58:22"}
+{"level":"info","message":"   From: RCCG HRA <info@rccghralekki.com>","service":"churchplus-api","timestamp":"2026-04-08 21:58:22"}
+{"level":"warn","message":"Email configuration incomplete - emails will be logged only","service":"churchplus-api","timestamp":"2026-04-08 21:59:52"}
+{"level":"info","message":"Twilio SMS client initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 21:59:52"}
+{"level":"warn","message":"Email configuration incomplete - emails will be logged only","service":"churchplus-api","timestamp":"2026-04-08 21:59:52"}
+{"level":"info","message":"Twilio SMS client initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 21:59:52"}
+{"level":"info","message":"Push notification service initialized","service":"churchplus-api","timestamp":"2026-04-08 21:59:55"}
+{"level":"warn","message":"Email configuration incomplete - emails will be logged only","service":"churchplus-api","timestamp":"2026-04-08 21:59:55"}
+{"level":"info","message":"Twilio SMS client initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 21:59:55"}
+{"level":"warn","message":"Email configuration incomplete - emails will be logged only","service":"churchplus-api","timestamp":"2026-04-08 21:59:56"}
+{"level":"warn","message":"Email configuration incomplete - emails will be logged only","service":"churchplus-api","timestamp":"2026-04-08 21:59:56"}
+{"level":"warn","message":"Email configuration incomplete - emails will be logged only","service":"churchplus-api","timestamp":"2026-04-08 21:59:58"}
+{"level":"info","message":"Twilio SMS client initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 21:59:58"}
+{"level":"info","message":"🚀 Server running on port 5000 in production mode","service":"churchplus-api","timestamp":"2026-04-08 21:59:58"}
+{"level":"info","message":"📡 API available at http://localhost:5000/api/v1","service":"churchplus-api","timestamp":"2026-04-08 21:59:58"}
+{"level":"info","message":"✅ SMTP transporter initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 21:59:59"}
+{"level":"info","message":"   Server: rccghralekki.com:465 (SSL)","service":"churchplus-api","timestamp":"2026-04-08 21:59:59"}
+{"level":"info","message":"   From: RCCG HRA <info@rccghralekki.com>","service":"churchplus-api","timestamp":"2026-04-08 21:59:59"}
+{"level":"info","message":"✅ SMTP transporter initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 21:59:59"}
+{"level":"info","message":"   Server: rccghralekki.com:465 (SSL)","service":"churchplus-api","timestamp":"2026-04-08 21:59:59"}
+{"level":"info","message":"   From: RCCG HRA <info@rccghralekki.com>","service":"churchplus-api","timestamp":"2026-04-08 21:59:59"}
+{"level":"info","message":"✅ SMTP transporter initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 21:59:59"}
+{"level":"info","message":"   Server: rccghralekki.com:465 (SSL)","service":"churchplus-api","timestamp":"2026-04-08 21:59:59"}
+{"level":"info","message":"   From: RCCG HRA <info@rccghralekki.com>","service":"churchplus-api","timestamp":"2026-04-08 21:59:59"}
+{"level":"info","message":"✅ SMTP transporter initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 21:59:59"}
+{"level":"info","message":"   Server: rccghralekki.com:465 (SSL)","service":"churchplus-api","timestamp":"2026-04-08 21:59:59"}
+{"level":"info","message":"   From: RCCG HRA <info@rccghralekki.com>","service":"churchplus-api","timestamp":"2026-04-08 21:59:59"}
+{"level":"info","message":"✅ SMTP transporter initialized successfully","service":"churchplus-api","timestamp":"2026-04-08 21:59:59"}
+{"level":"info","message":"   Server: rccghralekki.com:465 (SSL)","service":"churchplus-api","timestamp":"2026-04-08 21:59:59"}
+{"level":"info","message":"   From: RCCG HRA <info@rccghralekki.com>","service":"churchplus-api","timestamp":"2026-04-08 21:59:59"}

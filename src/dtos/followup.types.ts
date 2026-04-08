@@ -497,3 +497,6 @@ export interface MessageTemplateRow {
     created_at: Date;
     updated_at: Date;
 }
+
+export type FollowUpFiltersDTO = FollowUpFilters;
+export type ActivityFiltersDTO = ActivityFilters;

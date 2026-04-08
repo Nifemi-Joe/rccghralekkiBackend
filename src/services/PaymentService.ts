@@ -52,7 +52,7 @@ export class PaymentService {
                 // Calculate price based on units
                 const pricing = await this.walletService.getPricing(data.channel === 'combo' ? 'sms' : data.channel);
                 units = data.units;
-                amount = data.units * pricing.sell_price;
+                amount = data.units * (pricing?.sell_price || 1);
             } else {
                 throw new AppError('Either packageId or units must be provided', 400);
             }

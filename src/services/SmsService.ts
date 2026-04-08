@@ -63,6 +63,14 @@ interface FollowUpMessageResult {
     error?: string;
 }
 
+interface SMSHistoryFilters {
+    page?: number;
+    limit?: number;
+    churchId?: string;
+    startDate?: string;
+    endDate?: string;
+}
+
 export class SmsService {
     private smsRepository: SmsRepository;
     private memberRepository: MemberRepository;
@@ -216,8 +224,8 @@ export class SmsService {
                     deliveryStatus = 'sent';
                 } else if (process.env.WHATSAPP_PROVIDER === 'termii') {
                     // Termii WhatsApp
-                    const result = await termii.sendWhatsApp({
-                        to: formattedPhone,
+                    const result = await termii.sendWhatsAppMessage({
+                        phone_number: formattedPhone,
                         message: personalizedMessage,
                     });
 
@@ -405,7 +413,7 @@ export class SmsService {
     }
 
     // ============================================================================
-    // EXISTING SENDER ID METHODS
+    // SENDER ID METHODS
     // ============================================================================
 
     async requestSenderId(churchId: string, data: CreateSenderIdDTO, userId?: string): Promise<SmsSenderId> {
@@ -480,6 +488,70 @@ export class SmsService {
         );
     }
 
+    /**
+     * Sync local sender IDs with Termii to get latest statuses
+     */
+    async syncSenderIdsWithTermii(churchId: string): Promise<void> {
+        try {
+            logger.info(`Syncing sender IDs with Termii for church: ${churchId}`);
+
+            const termii = getTermii();
+
+            // Fetch all local sender IDs for this church
+            const localSenderIds = await this.smsRepository.getSenderIds(churchId);
+
+            if (localSenderIds.length === 0) {
+                logger.info(`No sender IDs found for church ${churchId}, nothing to sync`);
+                return;
+            }
+
+            // Attempt to fetch sender IDs from Termii
+            let termiiSenderIds: Array<{ sender_id: string; status: string }> = [];
+
+            try {
+                const termiiResponse = await termii.getSenderIds();
+                termiiSenderIds = termiiResponse?.data || termiiResponse || [];
+            } catch (termiiError: any) {
+                logger.warn(
+                    `Could not fetch sender IDs from Termii: ${termiiError.message}. ` +
+                    `Will attempt to verify individual sender IDs.`
+                );
+            }
+
+            // Build a lookup map from Termii's response
+            const termiiStatusMap = new Map<string, string>();
+            for (const ts of termiiSenderIds) {
+                if (ts.sender_id) {
+                    termiiStatusMap.set(ts.sender_id.toUpperCase(), ts.status);
+                }
+            }
+
+            // Update local records with Termii statuses
+            for (const localSender of localSenderIds) {
+                const termiiStatus = termiiStatusMap.get(localSender.sender_id.toUpperCase());
+
+                if (termiiStatus && termiiStatus !== localSender.status) {
+                    logger.info(
+                        `Updating sender ID ${localSender.sender_id} status: ` +
+                        `${localSender.status} -> ${termiiStatus}`
+                    );
+
+                    await this.smsRepository.updateSenderId(localSender.id, {
+                        status: termiiStatus,
+                    });
+                }
+            }
+
+            logger.info(`Sender ID sync completed for church ${churchId}`);
+        } catch (error: any) {
+            logger.error('Error syncing sender IDs with Termii:', error);
+            throw new AppError(
+                error.message || 'Failed to sync sender IDs with Termii',
+                500
+            );
+        }
+    }
+
     async setDefaultSenderId(churchId: string, senderIdId: string): Promise<void> {
         return this.smsRepository.setDefaultSenderId(churchId, senderIdId);
     }
@@ -488,6 +560,158 @@ export class SmsService {
         const deleted = await this.smsRepository.deleteSenderId(churchId, senderIdId);
         if (!deleted) {
             throw new AppError('Sender ID not found', 404);
+        }
+    }
+
+    // src/services/SmsService.ts
+// ADD this method inside the SmsService class,
+// placed after the getCampaignReport method in the CAMPAIGN METHODS section.
+
+    // ============================================================================
+    // SCHEDULED CAMPAIGN PROCESSING
+    // ============================================================================
+
+    /**
+     * Find all scheduled campaigns whose scheduledAt time has passed
+     * and process (send) them.
+     */
+    async processScheduledCampaigns(): Promise<void> {
+        try {
+            logger.info('Checking for scheduled SMS campaigns to process...');
+
+            // Pull campaigns that are scheduled and due
+            const dueCampaigns = await this.smsRepository.getDueScheduledCampaigns();
+
+            if (dueCampaigns.length === 0) {
+                logger.info('No scheduled SMS campaigns are due at this time');
+                return;
+            }
+
+            logger.info(`Found ${dueCampaigns.length} scheduled SMS campaign(s) to process`);
+
+            for (const campaign of dueCampaigns) {
+                try {
+                    logger.info(
+                        `Processing scheduled campaign ${campaign.id} for church ${campaign.church_id}`
+                    );
+
+                    // Mark as sending immediately to prevent duplicate processing
+                    await this.smsRepository.updateCampaign(
+                        campaign.church_id,
+                        campaign.id,
+                        { status: 'sending' }
+                    );
+
+                    // Reconstruct the ComposeSmsDTO from the stored campaign
+                    const campaignData: ComposeSmsDTO = {
+                        message: campaign.message,
+                        destinationType: campaign.destination_type || 'phone_numbers',
+                        sendOption: 'now',
+                        senderId: campaign.sender_id,
+                        groupIds: campaign.group_ids,
+                        memberIds: campaign.member_ids,
+                        contactListIds: campaign.contact_list_ids,
+                        phoneNumbers: campaign.phone_numbers,
+                        uploadedContacts: campaign.uploaded_contacts,
+                        selectAllContacts: campaign.select_all_contacts,
+                    };
+
+                    // Resolve recipients
+                    const recipients = await this.getRecipients(
+                        campaign.church_id,
+                        campaignData
+                    );
+
+                    if (recipients.length === 0) {
+                        logger.warn(
+                            `No recipients found for scheduled campaign ${campaign.id}; marking as failed`
+                        );
+                        await this.smsRepository.updateCampaign(
+                            campaign.church_id,
+                            campaign.id,
+                            { status: 'failed' }
+                        );
+                        continue;
+                    }
+
+                    // Check balance before sending
+                    const unitsPerMessage = Math.ceil(campaign.message.length / 160);
+                    const totalUnitsRequired = recipients.length * unitsPerMessage;
+
+                    const balanceCheck = await this.walletService.checkSufficientBalance(
+                        campaign.church_id,
+                        'sms',
+                        totalUnitsRequired
+                    );
+
+                    if (!balanceCheck.sufficient) {
+                        logger.warn(
+                            `Insufficient balance for scheduled campaign ${campaign.id}. ` +
+                            `Required: ${totalUnitsRequired}, Available: ${balanceCheck.balanceInfo.total}`
+                        );
+                        await this.smsRepository.updateCampaign(
+                            campaign.church_id,
+                            campaign.id,
+                            { status: 'failed' }
+                        );
+                        continue;
+                    }
+
+                    // Update recipient count
+                    await this.smsRepository.updateCampaign(
+                        campaign.church_id,
+                        campaign.id,
+                        { total_recipients: recipients.length }
+                    );
+
+                    // Fire-and-forget the actual send (same as composeSms 'now' path)
+                    this.processCampaign(
+                        campaign.church_id,
+                        campaign.id,
+                        recipients,
+                        campaign.message,
+                        campaign.sender_id,
+                        campaign.created_by,
+                        balanceCheck.useTermii
+                    ).catch(err => {
+                        logger.error(
+                            `Error processing scheduled campaign ${campaign.id}:`,
+                            err
+                        );
+                    });
+
+                    logger.info(
+                        `Scheduled campaign ${campaign.id} handed off for sending`
+                    );
+                } catch (campaignError: any) {
+                    logger.error(
+                        `Error processing scheduled campaign ${campaign.id}:`,
+                        campaignError
+                    );
+
+                    // Mark individual campaign as failed without stopping the loop
+                    try {
+                        await this.smsRepository.updateCampaign(
+                            campaign.church_id,
+                            campaign.id,
+                            { status: 'failed' }
+                        );
+                    } catch (updateError) {
+                        logger.error(
+                            `Could not mark campaign ${campaign.id} as failed:`,
+                            updateError
+                        );
+                    }
+                }
+            }
+
+            logger.info('Scheduled SMS campaign processing complete');
+        } catch (error: any) {
+            logger.error('Error in processScheduledCampaigns:', error);
+            throw new AppError(
+                error.message || 'Failed to process scheduled campaigns',
+                500
+            );
         }
     }
 
@@ -539,7 +763,10 @@ export class SmsService {
             const unitsPerMessage = Math.ceil(messageLength / 160);
             const totalUnitsRequired = recipients.length * unitsPerMessage;
 
-            logger.info(`SMS calculation: ${recipients.length} recipients × ${unitsPerMessage} units = ${totalUnitsRequired} total units needed`);
+            logger.info(
+                `SMS calculation: ${recipients.length} recipients × ` +
+                `${unitsPerMessage} units = ${totalUnitsRequired} total units needed`
+            );
 
             let useTermiiDirectly = false;
 
@@ -551,7 +778,8 @@ export class SmsService {
                 );
 
                 if (!balanceCheck.sufficient) {
-                    const errorMessage = `Insufficient SMS balance. Required: ${totalUnitsRequired} units. ` +
+                    const errorMessage =
+                        `Insufficient SMS balance. Required: ${totalUnitsRequired} units. ` +
                         `Local balance: ${balanceCheck.balanceInfo.local} units. ` +
                         `Termii balance: ₦${balanceCheck.balanceInfo.termii?.balance || 0}`;
 
@@ -759,7 +987,12 @@ export class SmsService {
                     logger.error(`Error sending batch ${Math.floor(i / batchSize) + 1}:`, error);
 
                     for (const msg of batchMessages) {
-                        await this.smsRepository.updateMessageStatus(msg.id, 'failed', undefined, error.message);
+                        await this.smsRepository.updateMessageStatus(
+                            msg.id,
+                            'failed',
+                            undefined,
+                            error.message
+                        );
                         failedCount++;
                     }
                 }
@@ -814,7 +1047,11 @@ export class SmsService {
             switch (data.destinationType) {
                 case 'contacts':
                 case 'contact_lists':
-                    return await this.getContactListRecipients(churchId, data.contactListIds || [], data.selectAllContacts);
+                    return await this.getContactListRecipients(
+                        churchId,
+                        data.contactListIds || [],
+                        data.selectAllContacts
+                    );
                 case 'all_contacts':
                     return await this.getAllContacts(churchId);
                 case 'groups':
@@ -969,7 +1206,9 @@ export class SmsService {
     // ============================================================================
 
     async sendOtp(to: string, otp: string): Promise<void> {
-        const message = `Your verification code is: ${otp}. This code expires in 10 minutes. Do not share this code with anyone.`;
+        const message =
+            `Your verification code is: ${otp}. ` +
+            `This code expires in 10 minutes. Do not share this code with anyone.`;
 
         try {
             const termii = getTermii();
@@ -1003,7 +1242,9 @@ export class SmsService {
 
             logger.info(`Profile update link SMS sent to ${formattedPhone}`);
         } catch (error: any) {
-            logger.warn(`Failed to send profile update link SMS via Termii to ${to}. Error: ${error.message}`);
+            logger.warn(
+                `Failed to send profile update link SMS via Termii to ${to}. Error: ${error.message}`
+            );
             logger.info(`[SMS FALLBACK to ${to}]: ${message}`);
         }
     }
@@ -1024,7 +1265,11 @@ export class SmsService {
         return campaign;
     }
 
-    async updateCampaign(churchId: string, campaignId: string, data: Partial<SmsCampaign>): Promise<SmsCampaign> {
+    async updateCampaign(
+        churchId: string,
+        campaignId: string,
+        data: Partial<SmsCampaign>
+    ): Promise<SmsCampaign> {
         const updated = await this.smsRepository.updateCampaign(churchId, campaignId, data);
         if (!updated) {
             throw new AppError('Campaign not found', 404);
@@ -1059,6 +1304,98 @@ export class SmsService {
         return this.smsRepository.getMessagesByCampaign(campaignId);
     }
 
+    /**
+     * Sync a single message's delivery status from Termii
+     */
+    async syncMessageStatus(messageId: string): Promise<void> {
+        try {
+            logger.info(`Syncing message status for message: ${messageId}`);
+
+            // Fetch the message record from the repository
+            const message = await this.smsRepository.getMessageById(messageId);
+
+            if (!message) {
+                throw new AppError('Message not found', 404);
+            }
+
+            // If there's no external ID we cannot query Termii
+            if (!message.external_id && !(message as any).termii_message_id) {
+                logger.warn(
+                    `Message ${messageId} has no external Termii ID; cannot sync status`
+                );
+                return;
+            }
+
+            const externalId =
+                (message as any).termii_message_id || message.external_id;
+
+            const termii = getTermii();
+
+            // Fetch delivery report from Termii
+            let termiiStatus: string | undefined;
+
+            try {
+                const report = await termii.getMessageStatus(externalId);
+                termiiStatus = report?.status || report?.delivery_status;
+            } catch (termiiError: any) {
+                logger.warn(
+                    `Could not fetch status from Termii for message ${messageId}: ` +
+                    termiiError.message
+                );
+                return;
+            }
+
+            if (!termiiStatus) {
+                logger.warn(`Termii returned no status for message ${messageId}`);
+                return;
+            }
+
+            // Map Termii status to our internal status
+            const internalStatus = this.mapTermiiStatus(termiiStatus);
+
+            if (internalStatus !== message.status) {
+                logger.info(
+                    `Updating message ${messageId} status: ${message.status} -> ${internalStatus}`
+                );
+
+                await this.smsRepository.updateMessageStatus(
+                    messageId,
+                    internalStatus,
+                    externalId
+                );
+            }
+
+            logger.info(`Message status sync completed for message: ${messageId}`);
+        } catch (error: any) {
+            logger.error('Error syncing message status:', error);
+            throw new AppError(
+                error.message || 'Failed to sync message status',
+                error.statusCode || 500
+            );
+        }
+    }
+
+    /**
+     * Map Termii delivery status strings to our internal status values
+     */
+    private mapTermiiStatus(termiiStatus: string): string {
+        const statusMap: Record<string, string> = {
+            // Termii statuses -> internal statuses
+            delivered:    'delivered',
+            sent:         'sent',
+            failed:       'failed',
+            rejected:     'failed',
+            expired:      'failed',
+            undelivered:  'failed',
+            pending:      'pending',
+            accepted:     'sent',
+            buffered:     'pending',
+            enroute:      'pending',
+        };
+
+        return statusMap[termiiStatus.toLowerCase()] ?? 'pending';
+    }
+
     // ============================================================================
     // REPLY METHODS
     // ============================================================================
@@ -1080,6 +1417,141 @@ export class SmsService {
         return this.smsRepository.markAllRepliesAsRead(churchId);
     }
 
+    /**
+     * Reply to an inbound SMS message
+     */
+    async replyToMessage(
+        churchId: string,
+        replyId: string,
+        message: string,
+        senderId?: string,
+        userId?: string
+    ): Promise<SmsMessage> {
+        try {
+            logger.info(`Replying to message ${replyId} for church ${churchId}`);
+
+            // Fetch the original inbound reply to get the sender's phone number
+            const replies = await this.smsRepository.getReplies(churchId, 1, 1000, false);
+            const originalReply = replies.data.find(
+                (r: any) => r.id === replyId
+            );
+
+            if (!originalReply) {
+                throw new AppError('Reply not found', 404);
+            }
+
+            const recipientPhone: string | undefined =
+                originalReply.from ||
+                originalReply.phone_number ||
+                originalReply.sender_name;
+
+            if (!recipientPhone) {
+                throw new AppError(
+                    'Cannot determine recipient phone number from original reply',
+                    400
+                );
+            }
+
+            // Resolve sender ID
+            let resolvedSenderId = senderId;
+            if (!resolvedSenderId) {
+                const defaultSender = await this.smsRepository.getDefaultSenderId(churchId);
+                resolvedSenderId = defaultSender?.sender_id;
+            }
+            if (!resolvedSenderId) {
+                resolvedSenderId = process.env.TERMII_SENDER_ID || 'ChurchMS';
+            }
+
+            // Check balance
+            const units = Math.ceil(message.length / 160);
+            const balanceCheck = await this.walletService.checkSufficientBalance(
+                churchId,
+                'sms',
+                units
+            );
+
+            if (!balanceCheck.sufficient) {
+                throw new AppError(
+                    `Insufficient SMS balance. Required: ${units} units. ` +
+                    `Available: ${balanceCheck.balanceInfo.total} units`,
+                    400
+                );
+            }
+
+            const formattedPhone = this.formatPhoneNumber(recipientPhone);
+
+            // Persist message record
+            const outboundMessage = await this.smsRepository.createMessage(
+                churchId,
+                {
+                    phoneNumber: formattedPhone,
+                    recipientName: originalReply.name || originalReply.sender_name,
+                    message,
+                    senderId: resolvedSenderId,
+                    units,
+                },
+                userId
+            );
+
+            // Send via Termii
+            const termii = getTermii();
+
+            try {
+                const result = await termii.sendSMS({
+                    to: formattedPhone,
+                    from: resolvedSenderId,
+                    sms: message,
+                });
+
+                await this.smsRepository.updateMessageStatus(
+                    outboundMessage.id,
+                    'sent',
+                    result.message_id
+                );
+
+                // Debit local wallet if applicable
+                if (!balanceCheck.useTermii && balanceCheck.balanceInfo.local >= units) {
+                    await this.walletService.debitBalance(
+                        churchId,
+                        'sms',
+                        units,
+                        {
+                            reference: outboundMessage.id,
+                            description: `SMS reply to ${formattedPhone}`,
+                        },
+                        userId
+                    );
+                }
+
+                // Mark the original reply as read now that we've responded
+                await this.smsRepository.markReplyAsRead(churchId, replyId);
+
+                logger.info(
+                    `Reply SMS sent successfully: ${outboundMessage.id} to ${formattedPhone}`
+                );
+            } catch (error: any) {
+                logger.error('Error sending reply SMS via Termii:', error);
+
+                await this.smsRepository.updateMessageStatus(
+                    outboundMessage.id,
+                    'failed',
+                    undefined,
+                    error.message
+                );
+
+                throw new AppError('Failed to send reply: ' + error.message, 500);
+            }
+
+            const updatedMessage = await this.smsRepository.getMessageById(outboundMessage.id);
+            return updatedMessage || outboundMessage;
+        } catch (error: any) {
+            logger.error('Error in replyToMessage:', error);
+            throw error instanceof AppError
+                ? error
+                : new AppError(error.message || 'Failed to reply to message', 500);
+        }
+    }
+
     // ============================================================================
     // STATISTICS
     // ============================================================================
@@ -1097,6 +1569,54 @@ export class SmsService {
     }
 
     // ============================================================================
+    // SMS HISTORY
+    // ============================================================================
+
+    /**
+     * Get paginated SMS history across all churches (admin) or filtered by church.
+     * Delegates to the messages query with optional filters.
+     */
+    async getSMSHistory(filters: SMSHistoryFilters): Promise<{
+        data: SmsMessage[];
+        total: number;
+        page: number;
+        limit: number;
+        totalPages: number;
+    }> {
+        try {
+            const page = filters.page ?? 1;
+            const limit = filters.limit ?? 20;
+
+            logger.info('Fetching SMS history', { filters });
+
+            // Build a SmsFilters-compatible object
+            const smsFilters: SmsFilters = {
+                churchId: filters.churchId || '',
+                page,
+                limit,
+                startDate: filters.startDate,
+                endDate: filters.endDate,
+            };
+
+            const result = await this.smsRepository.getMessages(smsFilters);
+
+            return {
+                data: result.data,
+                total: result.total,
+                page: result.page,
+                limit: result.limit,
+                totalPages: result.totalPages,
+            };
+        } catch (error: any) {
+            logger.error('Error fetching SMS history:', error);
+            throw new AppError(
+                error.message || 'Failed to fetch SMS history',
+                error.statusCode || 500
+            );
+        }
+    }
+
+    // ============================================================================
     // CONTACT LIST METHODS
     // ============================================================================
 
@@ -1104,7 +1624,12 @@ export class SmsService {
         return this.smsRepository.getContactLists(churchId);
     }
 
-    async createContactList(churchId: string, name: string, description?: string, userId?: string): Promise<SmsContactList> {
+    async createContactList(
+        churchId: string,
+        name: string,
+        description?: string,
+        userId?: string
+    ): Promise<SmsContactList> {
         return this.smsRepository.createContactList(churchId, name, description, userId);
     }
 
@@ -1116,7 +1641,11 @@ export class SmsService {
         return list;
     }
 
-    async updateContactList(churchId: string, listId: string, data: { name?: string; description?: string }): Promise<SmsContactList> {
+    async updateContactList(
+        churchId: string,
+        listId: string,
+        data: { name?: string; description?: string }
+    ): Promise<SmsContactList> {
         const updated = await this.smsRepository.updateContactList(churchId, listId, data);
         if (!updated) {
             throw new AppError('Contact list not found', 404);
@@ -1131,11 +1660,18 @@ export class SmsService {
         }
     }
 
-    async addContactsToList(listId: string, contacts: Array<{ phoneNumber: string; name?: string }>): Promise<number> {
+    async addContactsToList(
+        listId: string,
+        contacts: Array<{ phoneNumber: string; name?: string }>
+    ): Promise<number> {
         return this.smsRepository.addContactsToList(listId, contacts);
     }
 
-    async getContactListItems(listId: string, page: number = 1, limit: number = 50): Promise<{ data: SmsContactListItem[]; total: number }> {
+    async getContactListItems(
+        listId: string,
+        page: number = 1,
+        limit: number = 50
+    ): Promise<{ data: SmsContactListItem[]; total: number }> {
         return this.smsRepository.getContactListItems(listId, page, limit);
     }
 

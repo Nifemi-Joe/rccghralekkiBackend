@@ -8,6 +8,10 @@ export declare class NotificationRepository {
     markAllAsRead(churchId: string, userId?: string): Promise<number>;
     delete(id: string, churchId: string): Promise<boolean>;
     deleteOld(churchId: string, daysOld?: number): Promise<number>;
+    /**
+     * Fixed: now returns all fields required by NotificationStats
+     * (total, unread, byType, byPriority, recentCount).
+     */
     getStats(churchId: string, userId?: string): Promise<NotificationStats>;
     getUnreadCount(churchId: string, userId?: string): Promise<number>;
 }

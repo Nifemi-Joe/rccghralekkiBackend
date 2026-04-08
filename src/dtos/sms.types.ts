@@ -5,6 +5,8 @@ export interface SmsSenderId {
     sender_id: string;
     status: 'pending' | 'approved' | 'rejected' | 'active';
     rejection_reason?: string;
+    use_case?: string;
+    description?: string;
     is_default: boolean;
     approved_at?: Date;
     created_by?: string;
@@ -61,11 +63,13 @@ export interface SmsCampaign {
     message: string;
     sender_id?: string;
     sender?: SmsSenderId;
-    destination_type: 'all_contacts' | 'groups' | 'members' | 'phone_numbers' | 'uploaded';
+    destination_type: 'contacts' | 'contact_lists' | 'all_contacts' | 'groups' | 'members' | 'phone_numbers' | 'uploaded';
     group_ids?: string[];
     member_ids?: string[];
+    contact_list_ids?: string[];
     phone_numbers?: string[];
     uploaded_contacts?: UploadedContact[];
+    select_all_contacts?: boolean;
     status: 'draft' | 'scheduled' | 'sending' | 'sent' | 'failed' | 'cancelled';
     scheduled_at?: Date;
     sent_at?: Date;
@@ -94,8 +98,23 @@ export interface SmsMessage {
     message: string;
     sender_id?: string;
     direction: 'outbound' | 'inbound';
+    /**
+     * Primary delivery status field.
+     * Some DB rows expose this as `delivery_status`; others surface it via
+     * `status`.  Both are kept here so callers can use whichever the DB
+     * returns without casting.
+     */
     status: 'pending' | 'sent' | 'delivered' | 'failed' | 'rejected';
+    /**
+     * Alias / extended delivery status returned by some queries or provider
+     * webhooks (e.g. Termii delivery reports).  May duplicate `status` but
+     * is kept as a separate optional field so existing DB columns named
+     * `delivery_status` map cleanly.
+     */
+    delivery_status?: 'pending' | 'sent' | 'delivered' | 'failed' | 'rejected';
     external_id?: string;
+    /** Alias for external_id used by some provider integrations */
+    termii_message_id?: string;
     error_message?: string;
     units: number;
     sent_at?: Date;
@@ -111,12 +130,19 @@ export interface SmsReply {
     phone_number: string;
     sender_name?: string;
     message: string;
+    /** The originating phone number (used when replying back) */
+    from?: string;
+    /** Display name of the sender */
+    name?: string;
     is_read: boolean;
     received_at: Date;
     created_at: Date;
 }
 
+// ============================================================================
 // DTOs
+// ============================================================================
+
 export interface CreateSenderIdDTO {
     senderId: string;
     useCase?: string;

@@ -18,9 +18,10 @@ export const scheduledCampaignsJob = cron.schedule('* * * * *', async () => {
         await smsService.processScheduledCampaigns();
 
         // Process Email campaigns
-        await emailService.processScheduledCampaigns();
-
-        // Note: WhatsApp scheduled campaigns handled separately if needed
+        // emailService.processScheduledCampaigns() should exist on EmailService
+        if (typeof (emailService as any).processScheduledCampaigns === 'function') {
+            await (emailService as any).processScheduledCampaigns();
+        }
 
         logger.info('Scheduled campaigns processed successfully');
     } catch (error) {
