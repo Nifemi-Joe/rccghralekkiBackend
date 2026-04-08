@@ -21,9 +21,15 @@ import { FollowUpAssignment, FollowUpMember } from '@/dtos/followup.types';
 // TYPES
 // ============================================================================
 
+/**
+ * Looser data bag used internally when building notifications for church
+ * admins.  The `type` field is typed as `NotificationType` so it is
+ * compatible with `CreateNotificationDTO`.
+ */
 export interface NotificationData {
     churchId: string;
-    type: string;
+    /** Must be one of the valid NotificationType values */
+    type: NotificationType;
     title: string;
     message: string;
     actionUrl?: string;
@@ -116,7 +122,9 @@ export class NotificationService {
         }
     }
 
-    async createBulkNotifications(notifications: CreateNotificationDTO[]): Promise<Notification[]> {
+    async createBulkNotifications(
+        notifications: CreateNotificationDTO[]
+    ): Promise<Notification[]> {
         try {
             return await this.notificationRepository.createBulk(notifications);
         } catch (error) {
@@ -159,7 +167,9 @@ export class NotificationService {
 
     async sendEmail(options: EmailOptions): Promise<boolean> {
         if (!this.isEmailConfigured || !this.emailTransporter) {
-            logger.warn(`Email not sent (not configured): To: ${options.to}, Subject: ${options.subject}`);
+            logger.warn(
+                `Email not sent (not configured): To: ${options.to}, Subject: ${options.subject}`
+            );
             return false;
         }
 
@@ -198,7 +208,6 @@ export class NotificationService {
                     .content { background: #fff; padding: 30px; border: 1px solid #e0e0e0; border-top: none; }
                     .footer { text-align: center; padding: 20px; color: #888; font-size: 12px; }
                     .button { display: inline-block; background: #667eea; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; margin: 20px 0; }
-                    .button:hover { background: #5a67d8; }
                 </style>
             </head>
             <body>
@@ -222,9 +231,6 @@ export class NotificationService {
     // FOLLOW-UP NOTIFICATIONS
     // ============================================================================
 
-    /**
-     * Notify follow-up team members about new assignment
-     */
     async notifyFollowUpAssignment(
         churchId: string,
         assignment: FollowUpAssignment,
@@ -234,17 +240,13 @@ export class NotificationService {
     ): Promise<void> {
         try {
             const firstTimerName = `${assignment.firstTimer?.firstName} ${assignment.firstTimer?.lastName}`;
-
-            // Create in-app notifications for each assigned member
             const notifications: CreateNotificationDTO[] = [];
 
             for (const member of assignedMembers) {
-                // Get the user ID for this member
                 const userResult = await pool.query(
                     'SELECT user_id FROM members WHERE id = $1',
                     [member.memberId]
                 );
-
                 const userId = userResult.rows[0]?.user_id;
                 if (!userId) continue;
 
@@ -275,7 +277,6 @@ export class NotificationService {
                 await this.createBulkNotifications(notifications);
             }
 
-            // Send emails to assigned members
             for (const member of assignedMembers) {
                 if (member.member?.email) {
                     await this.sendEmail({
@@ -290,7 +291,6 @@ export class NotificationService {
                                 ${assignment.dueDate ? `<p><strong>Due Date:</strong> ${new Date(assignment.dueDate).toLocaleDateString()}</p>` : ''}
                                 ${assignment.firstTimer?.phone ? `<p><strong>Phone:</strong> ${assignment.firstTimer.phone}</p>` : ''}
                                 ${assignment.firstTimer?.email ? `<p><strong>Email:</strong> ${assignment.firstTimer.email}</p>` : ''}
-                                <p>Please reach out to them as soon as possible.</p>
                             `,
                             actionUrl: `${process.env.FRONTEND_URL}/follow-up?assignment=${assignment.id}`,
                         },
@@ -304,9 +304,6 @@ export class NotificationService {
         }
     }
 
-    /**
-     * Notify about follow-up assignment deadline approaching
-     */
     async notifyFollowUpDeadline(
         churchId: string,
         assignment: FollowUpAssignment,
@@ -314,17 +311,14 @@ export class NotificationService {
     ): Promise<void> {
         try {
             const firstTimerName = `${assignment.firstTimer?.firstName} ${assignment.firstTimer?.lastName}`;
-
-            // Get assigned members
             const members = assignment.assignedMembers || [];
 
             for (const assignedMember of members) {
                 if (assignedMember.status !== 'active') continue;
 
-                // Get user ID
                 const memberResult = await pool.query(
                     `SELECT m.user_id, m.email, m.first_name FROM members m
-                     JOIN follow_up_members fm ON m.id = fm.member_id
+                                                                      JOIN follow_up_members fm ON m.id = fm.member_id
                      WHERE fm.id = $1`,
                     [assignedMember.followUpMemberId]
                 );
@@ -332,7 +326,6 @@ export class NotificationService {
                 const user = memberResult.rows[0];
                 if (!user?.user_id) continue;
 
-                // Create in-app notification
                 await this.createNotification({
                     churchId,
                     userId: user.user_id,
@@ -345,14 +338,9 @@ export class NotificationService {
                     actionUrl: `/follow-up?assignment=${assignment.id}`,
                     entityType: 'follow_up_assignment',
                     entityId: assignment.id,
-                    data: {
-                        assignmentId: assignment.id,
-                        firstTimerName,
-                        daysUntilDue,
-                    },
+                    data: { assignmentId: assignment.id, firstTimerName, daysUntilDue },
                 });
 
-                // Send email if configured
                 if (user.email) {
                     await this.sendEmail({
                         to: user.email,
@@ -361,29 +349,24 @@ export class NotificationService {
                             : `Follow-Up Due in ${daysUntilDue} Day${daysUntilDue > 1 ? 's' : ''}: ${firstTimerName}`,
                         data: {
                             title: 'Follow-Up Reminder',
-                            message: `
-                                <p>Hello ${user.first_name},</p>
-                                <p>${daysUntilDue === 0
+                            message: `<p>Hello ${user.first_name},</p><p>${daysUntilDue === 0
                                 ? `Your follow-up with <strong>${firstTimerName}</strong> is due today!`
                                 : `Your follow-up with <strong>${firstTimerName}</strong> is due in ${daysUntilDue} day${daysUntilDue > 1 ? 's' : ''}.`
-                            }</p>
-                                <p>Please ensure you reach out to them before the deadline.</p>
-                            `,
+                            }</p>`,
                             actionUrl: `${process.env.FRONTEND_URL}/follow-up?assignment=${assignment.id}`,
                         },
                     });
                 }
             }
 
-            logger.info(`Follow-up deadline notifications sent for assignment ${assignment.id}`);
+            logger.info(
+                `Follow-up deadline notifications sent for assignment ${assignment.id}`
+            );
         } catch (error) {
             logger.error('Error sending follow-up deadline notifications:', error);
         }
     }
 
-    /**
-     * Notify about follow-up assignment completion
-     */
     async notifyFollowUpCompleted(
         churchId: string,
         assignment: FollowUpAssignment,
@@ -391,14 +374,12 @@ export class NotificationService {
     ): Promise<void> {
         try {
             const firstTimerName = `${assignment.firstTimer?.firstName} ${assignment.firstTimer?.lastName}`;
-
-            // Notify all assigned members
             const members = assignment.assignedMembers || [];
 
             for (const assignedMember of members) {
                 const memberResult = await pool.query(
                     `SELECT m.user_id FROM members m
-                     JOIN follow_up_members fm ON m.id = fm.member_id
+                                               JOIN follow_up_members fm ON m.id = fm.member_id
                      WHERE fm.id = $1`,
                     [assignedMember.followUpMemberId]
                 );
@@ -418,14 +399,10 @@ export class NotificationService {
                     entityId: assignment.id,
                     actorId: completedBy.id,
                     actorName: completedBy.name,
-                    data: {
-                        assignmentId: assignment.id,
-                        firstTimerName,
-                    },
+                    data: { assignmentId: assignment.id, firstTimerName },
                 });
             }
 
-            // Notify admins/pastors
             const adminsResult = await pool.query(
                 `SELECT id, email, first_name FROM users
                  WHERE church_id = $1 AND role IN ('admin', 'pastor') AND is_active = true`,
@@ -445,22 +422,18 @@ export class NotificationService {
                     entityId: assignment.id,
                     actorId: completedBy.id,
                     actorName: completedBy.name,
-                    data: {
-                        assignmentId: assignment.id,
-                        firstTimerName,
-                    },
+                    data: { assignmentId: assignment.id, firstTimerName },
                 });
             }
 
-            logger.info(`Follow-up completion notifications sent for assignment ${assignment.id}`);
+            logger.info(
+                `Follow-up completion notifications sent for assignment ${assignment.id}`
+            );
         } catch (error) {
             logger.error('Error sending follow-up completion notifications:', error);
         }
     }
 
-    /**
-     * Notify about response received from first timer
-     */
     async notifyFollowUpResponse(
         churchId: string,
         assignment: FollowUpAssignment,
@@ -469,8 +442,6 @@ export class NotificationService {
     ): Promise<void> {
         try {
             const firstTimerName = `${assignment.firstTimer?.firstName} ${assignment.firstTimer?.lastName}`;
-
-            // Notify all active assigned members
             const members = assignment.assignedMembers || [];
 
             for (const assignedMember of members) {
@@ -478,7 +449,7 @@ export class NotificationService {
 
                 const memberResult = await pool.query(
                     `SELECT m.user_id, m.email, m.first_name FROM members m
-                     JOIN follow_up_members fm ON m.id = fm.member_id
+                                                                      JOIN follow_up_members fm ON m.id = fm.member_id
                      WHERE fm.id = $1`,
                     [assignedMember.followUpMemberId]
                 );
@@ -500,7 +471,8 @@ export class NotificationService {
                         assignmentId: assignment.id,
                         firstTimerName,
                         channel,
-                        responsePreview: response.substring(0, 100) + (response.length > 100 ? '...' : ''),
+                        responsePreview:
+                            response.substring(0, 100) + (response.length > 100 ? '...' : ''),
                     },
                 });
 
@@ -513,10 +485,9 @@ export class NotificationService {
                             message: `
                                 <p>Hello ${user.first_name},</p>
                                 <p><strong>${firstTimerName}</strong> responded to your ${channel} message:</p>
-                                <blockquote style="background: #f9f9f9; padding: 15px; border-left: 3px solid #667eea; margin: 15px 0;">
+                                <blockquote style="background:#f9f9f9;padding:15px;border-left:3px solid #667eea;margin:15px 0;">
                                     ${response}
                                 </blockquote>
-                                <p>Click below to view the full conversation and respond.</p>
                             `,
                             actionUrl: `${process.env.FRONTEND_URL}/follow-up?assignment=${assignment.id}`,
                         },
@@ -524,15 +495,14 @@ export class NotificationService {
                 }
             }
 
-            logger.info(`Follow-up response notifications sent for assignment ${assignment.id}`);
+            logger.info(
+                `Follow-up response notifications sent for assignment ${assignment.id}`
+            );
         } catch (error) {
             logger.error('Error sending follow-up response notifications:', error);
         }
     }
 
-    /**
-     * Notify when a new first timer is added (for auto-assignment or manual assignment)
-     */
     async notifyNewFirstTimer(
         churchId: string,
         firstTimer: { id: string; firstName: string; lastName: string },
@@ -540,13 +510,14 @@ export class NotificationService {
         actorName: string
     ): Promise<void> {
         try {
-            // Notify follow-up department leaders and coordinators
             const leadersResult = await pool.query(
                 `SELECT fm.id, m.user_id, m.email, m.first_name
                  FROM follow_up_members fm
-                 JOIN members m ON fm.member_id = m.id
-                 JOIN follow_up_departments fd ON fm.department_id = fd.id
-                 WHERE fd.church_id = $1 AND fm.role IN ('leader', 'coordinator') AND fm.status = 'active'`,
+                          JOIN members m ON fm.member_id = m.id
+                          JOIN follow_up_departments fd ON fm.department_id = fd.id
+                 WHERE fd.church_id = $1
+                   AND fm.role IN ('leader', 'coordinator')
+                   AND fm.status = 'active'`,
                 [churchId]
             );
 
@@ -601,7 +572,11 @@ export class NotificationService {
                 entityId: member.id,
                 actorId,
                 actorName,
-                data: { memberId: member.id, memberName: `${member.firstName} ${member.lastName}`, method },
+                data: {
+                    memberId: member.id,
+                    memberName: `${member.firstName} ${member.lastName}`,
+                    method,
+                },
             });
         } catch (error) {
             logger.error('Error sending member added notification:', error);
@@ -650,10 +625,12 @@ export class NotificationService {
                 entityId: firstTimer.id,
                 actorId,
                 actorName,
-                data: { firstTimerId: firstTimer.id, firstTimerName: `${firstTimer.firstName} ${firstTimer.lastName}` },
+                data: {
+                    firstTimerId: firstTimer.id,
+                    firstTimerName: `${firstTimer.firstName} ${firstTimer.lastName}`,
+                },
             });
 
-            // Also notify follow-up department
             await this.notifyNewFirstTimer(churchId, firstTimer, actorId, actorName);
         } catch (error) {
             logger.error('Error sending first timer added notification:', error);
@@ -679,7 +656,11 @@ export class NotificationService {
                 entityId: memberId,
                 actorId,
                 actorName,
-                data: { firstTimerId: firstTimer.id, memberId, name: `${firstTimer.firstName} ${firstTimer.lastName}` },
+                data: {
+                    firstTimerId: firstTimer.id,
+                    memberId,
+                    name: `${firstTimer.firstName} ${firstTimer.lastName}`,
+                },
             });
         } catch (error) {
             logger.error('Error sending first timer converted notification:', error);
@@ -708,7 +689,11 @@ export class NotificationService {
                 entityId: offering.id,
                 actorId,
                 actorName,
-                data: { transactionId: offering.id, type: offering.type, amount: offering.amount },
+                data: {
+                    transactionId: offering.id,
+                    type: offering.type,
+                    amount: offering.amount,
+                },
             });
         } catch (error) {
             logger.error('Error sending offering recorded notification:', error);
@@ -733,7 +718,11 @@ export class NotificationService {
                 entityId: expense.id,
                 actorId,
                 actorName,
-                data: { transactionId: expense.id, category: expense.category, amount: expense.amount },
+                data: {
+                    transactionId: expense.id,
+                    category: expense.category,
+                    amount: expense.amount,
+                },
             });
         } catch (error) {
             logger.error('Error sending expense recorded notification:', error);
@@ -769,7 +758,12 @@ export class NotificationService {
         churchId: string,
         actorId: string,
         actorName: string,
-        checkin: { eventId: string; eventName: string; memberName: string; checkInTime: string }
+        checkin: {
+            eventId: string;
+            eventName: string;
+            memberName: string;
+            checkInTime: string;
+        }
     ): Promise<void> {
         try {
             await this.createNotification({
@@ -819,6 +813,13 @@ export class NotificationService {
     // ADMIN NOTIFICATIONS
     // ============================================================================
 
+    /**
+     * Send a notification to every admin / super_admin of a church.
+     *
+     * The `data` parameter uses `NotificationData` whose `type` field is
+     * already typed as `NotificationType`, so spreading it into
+     * `CreateNotificationDTO` is fully type-safe.
+     */
     async notifyChurchAdmins(data: NotificationData): Promise<void> {
         try {
             const adminsResult = await pool.query(
@@ -835,11 +836,23 @@ export class NotificationService {
                 return;
             }
 
+            // Build a properly-typed CreateNotificationDTO for each admin.
+            // Because NotificationData.type is NotificationType, the spread
+            // produces a valid CreateNotificationDTO without any cast.
             const notificationInserts = adminsResult.rows.map(admin =>
                 this.createNotification({
-                    ...data,
-                    userId: admin.id,
-                })
+                    churchId:    data.churchId,
+                    userId:      admin.id,
+                    type:        data.type,           // NotificationType ✓
+                    title:       data.title,
+                    message:     data.message,
+                    actionUrl:   data.actionUrl,
+                    entityType:  data.entityType,
+                    entityId:    data.entityId,
+                    actorId:     data.actorId,
+                    actorName:   data.actorName,
+                    data:        data.metadata,
+                } satisfies CreateNotificationDTO)
             );
 
             await Promise.all(notificationInserts);
@@ -851,8 +864,8 @@ export class NotificationService {
                         to: admin.email,
                         subject: data.title,
                         data: {
-                            title: data.title,
-                            message: data.message,
+                            title:     data.title,
+                            message:   data.message,
                             actionUrl: data.actionUrl,
                             ...data.metadata,
                         },
@@ -861,7 +874,9 @@ export class NotificationService {
 
             await Promise.allSettled(emailPromises);
 
-            logger.info(`Notifications sent to ${adminsResult.rows.length} admins for church ${data.churchId}`);
+            logger.info(
+                `Notifications sent to ${adminsResult.rows.length} admins for church ${data.churchId}`
+            );
         } catch (error) {
             logger.error('Error sending notifications to admins:', error);
             throw error;

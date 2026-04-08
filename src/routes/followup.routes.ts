@@ -109,6 +109,9 @@ router.get('/my-assignments', followUpController.getMyAssignments);
 // UTILITY ROUTES
 // ============================================================================
 router.get('/unassigned-first-timers', followUpController.getUnassignedFirstTimers);
-router.get('/first-timers/:firstTimerId/assignment', followUpController.getAssignmentByFirstTimer);
+router.get(
+    '/first-timers/:firstTimerId/assignment',
+    followUpController.getAssignmentByFirstTimer
+);
 
 export default router;

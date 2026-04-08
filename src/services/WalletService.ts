@@ -17,6 +17,20 @@ export interface BalanceInfo {
     source: 'local' | 'termii' | 'combined' | 'none';
 }
 
+export interface AllBalances {
+    sms: number;
+    email: number;
+    whatsapp: number;
+    voice: number;
+    currency: string;
+    termii?: {
+        balance: number;
+        currency: string;
+        smsUnitsAvailable: number;
+        pricePerSms: number;
+    } | null;
+}
+
 export class WalletService {
     private walletRepository: WalletRepository;
 
@@ -25,28 +39,24 @@ export class WalletService {
     }
 
     // ============================================================================
-    // ENHANCED BALANCE CHECKING - Checks both local wallet AND Termii account
+    // ENHANCED BALANCE CHECKING
     // ============================================================================
 
-    /**
-     * Get comprehensive balance info from all sources
-     */
-    async getComprehensiveBalance(churchId: string, channel: 'sms' | 'email' | 'whatsapp' | 'voice' = 'sms'): Promise<BalanceInfo> {
+    async getComprehensiveBalance(
+        churchId: string,
+        channel: 'sms' | 'email' | 'whatsapp' | 'voice' = 'sms'
+    ): Promise<BalanceInfo> {
         try {
-            // Get local wallet balance
             const localBalance = await this.walletRepository.getBalance(churchId, channel);
 
-            // Get Termii balance and pricing
             let termiiInfo = null;
             try {
                 const termii = getTermii();
                 const termiiBalance = await termii.getBalance();
 
-                // Get SMS pricing (default to 4 NGN if not found)
                 const pricing = await this.walletRepository.getPricing(channel, 'NG');
                 const pricePerSms = pricing?.cost_per_unit || 4.0;
 
-                // Calculate how many SMS units the Termii balance can buy
                 const termiiBalanceAmount = parseFloat(termiiBalance?.balance || '0');
                 const smsUnitsAvailable = Math.floor(termiiBalanceAmount / pricePerSms);
 
@@ -57,16 +67,17 @@ export class WalletService {
                     pricePerSms,
                 };
 
-                logger.info(`Termii balance: ${termiiBalanceAmount} ${termiiInfo.currency}, can send ${smsUnitsAvailable} SMS @ ${pricePerSms}/SMS`);
+                logger.info(
+                    `Termii balance: ${termiiBalanceAmount} ${termiiInfo.currency}, ` +
+                    `can send ${smsUnitsAvailable} SMS @ ${pricePerSms}/SMS`
+                );
             } catch (error) {
                 logger.warn('Could not fetch Termii balance:', error);
             }
 
-            // Calculate total available units
             const termiiUnits = termiiInfo?.smsUnitsAvailable || 0;
             const totalUnits = localBalance + termiiUnits;
 
-            // Determine source
             let source: 'local' | 'termii' | 'combined' | 'none' = 'none';
             if (localBalance > 0 && termiiUnits > 0) {
                 source = 'combined';
@@ -89,9 +100,6 @@ export class WalletService {
         }
     }
 
-    /**
-     * Check if there's sufficient balance from any source
-     */
     async checkSufficientBalance(
         churchId: string,
         channel: 'sms' | 'email' | 'whatsapp' | 'voice',
@@ -99,17 +107,14 @@ export class WalletService {
     ): Promise<{ sufficient: boolean; balanceInfo: BalanceInfo; useTermii: boolean }> {
         const balanceInfo = await this.getComprehensiveBalance(churchId, channel);
 
-        // First check local balance
         if (balanceInfo.local >= unitsRequired) {
             return { sufficient: true, balanceInfo, useTermii: false };
         }
 
-        // Then check Termii balance
         if (balanceInfo.termii && balanceInfo.termii.smsUnitsAvailable >= unitsRequired) {
             return { sufficient: true, balanceInfo, useTermii: true };
         }
 
-        // Check combined balance
         if (balanceInfo.total >= unitsRequired) {
             return { sufficient: true, balanceInfo, useTermii: true };
         }
@@ -117,16 +122,50 @@ export class WalletService {
         return { sufficient: false, balanceInfo, useTermii: false };
     }
 
-    /**
-     * Get balance for a specific channel (backward compatible)
-     */
-    async getBalance(churchId: string, channel: 'sms' | 'email' | 'whatsapp' | 'voice'): Promise<number> {
+    async getBalance(
+        churchId: string,
+        channel: 'sms' | 'email' | 'whatsapp' | 'voice'
+    ): Promise<number> {
         return this.walletRepository.getBalance(churchId, channel);
     }
 
-    /**
-     * Get full wallet info
-     */
+    async getAllBalances(churchId: string): Promise<AllBalances> {
+        try {
+            const wallet = await this.walletRepository.getWallet(churchId);
+
+            let termiiInfo: AllBalances['termii'] = null;
+            try {
+                const termii = getTermii();
+                const termiiBalance = await termii.getBalance();
+                const pricing = await this.walletRepository.getPricing('sms', 'NG');
+                const pricePerSms = pricing?.cost_per_unit || 4.0;
+                const termiiBalanceAmount = parseFloat(termiiBalance?.balance || '0');
+                const smsUnitsAvailable = Math.floor(termiiBalanceAmount / pricePerSms);
+
+                termiiInfo = {
+                    balance: termiiBalanceAmount,
+                    currency: termiiBalance?.currency || 'NGN',
+                    smsUnitsAvailable,
+                    pricePerSms,
+                };
+            } catch (error) {
+                logger.warn('Could not fetch Termii balance for getAllBalances:', error);
+            }
+
+            return {
+                sms: wallet.sms_balance ?? 0,
+                email: wallet.email_balance ?? 0,
+                whatsapp: wallet.whatsapp_balance ?? 0,
+                voice: wallet.voice_balance ?? 0,
+                currency: wallet.currency ?? 'NGN',
+                termii: termiiInfo,
+            };
+        } catch (error) {
+            logger.error('Error getting all balances:', error);
+            throw error;
+        }
+    }
+
     async getWallet(churchId: string): Promise<Wallet> {
         return this.walletRepository.getWallet(churchId);
     }
@@ -146,10 +185,17 @@ export class WalletService {
             paymentMethod?: string;
             paymentReference?: string;
             type?: 'credit' | 'bonus';
+            status?: string;
         },
         createdBy?: string
     ): Promise<Wallet> {
-        return this.walletRepository.creditBalance(churchId, channel, units, details, createdBy);
+        return this.walletRepository.creditBalance(
+            churchId,
+            channel,
+            units,
+            details,
+            createdBy
+        );
     }
 
     async debitBalance(
@@ -162,7 +208,42 @@ export class WalletService {
         },
         createdBy?: string
     ): Promise<Wallet> {
-        return this.walletRepository.debitBalance(churchId, channel, units, details, createdBy);
+        return this.walletRepository.debitBalance(
+            churchId,
+            channel,
+            units,
+            details,
+            createdBy
+        );
+    }
+
+    /**
+     * Convenience wrapper used by WhatsAppService and other callers that pass
+     * the reference and description as positional arguments instead of an
+     * object.  Delegates to the existing `debitBalance` method.
+     *
+     * @param churchId    - Church whose wallet will be debited
+     * @param channel     - Messaging channel to debit
+     * @param units       - Number of units to deduct
+     * @param reference   - Transaction reference (e.g. campaign / message ID)
+     * @param description - Human-readable description of the debit
+     * @param createdBy   - Optional user ID that triggered the debit
+     */
+    async deductUnits(
+        churchId: string,
+        channel: 'sms' | 'email' | 'whatsapp' | 'voice',
+        units: number,
+        reference: string,
+        description: string,
+        createdBy?: string
+    ): Promise<Wallet> {
+        return this.debitBalance(
+            churchId,
+            channel,
+            units,
+            { reference, description },
+            createdBy
+        );
     }
 
     async refundTransaction(
@@ -171,7 +252,12 @@ export class WalletService {
         reason: string,
         createdBy?: string
     ): Promise<WalletTransaction> {
-        return this.walletRepository.refundTransaction(transactionId, refundAmount, reason, createdBy);
+        return this.walletRepository.refundTransaction(
+            transactionId,
+            refundAmount,
+            reason,
+            createdBy
+        );
     }
 
     // ============================================================================
@@ -194,6 +280,66 @@ export class WalletService {
         return this.walletRepository.getTransactions(churchId, filters);
     }
 
+    async exportTransactions(
+        churchId: string,
+        filters: {
+            channel?: string;
+            type?: string;
+            status?: string;
+            startDate?: string;
+            endDate?: string;
+        }
+    ): Promise<string> {
+        try {
+            logger.info(`Exporting transactions for church ${churchId}`, { filters });
+
+            const { data } = await this.walletRepository.getTransactions(churchId, {
+                ...filters,
+                page: 1,
+                limit: 100_000,
+            });
+
+            const headers = [
+                'ID', 'Type', 'Channel', 'Units', 'Amount',
+                'Balance Before', 'Balance After', 'Reference', 'Description',
+                'Payment Method', 'Payment Reference', 'Status', 'Created At',
+            ];
+
+            const escapeCell = (value: any): string => {
+                if (value === null || value === undefined) return '';
+                const str = String(value);
+                if (str.includes(',') || str.includes('"') || str.includes('\n')) {
+                    return `"${str.replace(/"/g, '""')}"`;
+                }
+                return str;
+            };
+
+            const rows = data.map(tx => [
+                escapeCell(tx.id),
+                escapeCell(tx.type),
+                escapeCell(tx.channel),
+                escapeCell(tx.units),
+                escapeCell(tx.amount ?? ''),
+                escapeCell(tx.balance_before),
+                escapeCell(tx.balance_after),
+                escapeCell(tx.reference ?? ''),
+                escapeCell(tx.description ?? ''),
+                escapeCell(tx.payment_method ?? ''),
+                escapeCell(tx.payment_reference ?? ''),
+                escapeCell(tx.status),
+                escapeCell(tx.created_at ? new Date(tx.created_at).toISOString() : ''),
+            ].join(','));
+
+            return [headers.join(','), ...rows].join('\n');
+        } catch (error: any) {
+            logger.error('Error exporting transactions:', error);
+            throw new AppError(
+                error.message || 'Failed to export transactions',
+                error.statusCode || 500
+            );
+        }
+    }
+
     async getAnalytics(churchId: string, startDate: string, endDate: string) {
         return this.walletRepository.getAnalytics(churchId, startDate, endDate);
     }
@@ -206,7 +352,10 @@ export class WalletService {
         return this.walletRepository.getAllPricing();
     }
 
-    async getPricing(channel: string, countryCode: string = 'NG'): Promise<MessagingPricing | null> {
+    async getPricing(
+        channel: string,
+        countryCode: string = 'NG'
+    ): Promise<MessagingPricing | null> {
         return this.walletRepository.getPricing(channel, countryCode);
     }
 
@@ -290,7 +439,7 @@ export class WalletService {
 
         const wallet = await this.creditBalance(
             churchId,
-            channel === 'combo' ? 'all' : channel,
+            channel === 'all' ? 'all' : channel,
             totalUnits,
             {
                 amount: paymentDetails.amount,
@@ -303,8 +452,10 @@ export class WalletService {
             createdBy
         );
 
-        // Get the latest transaction
-        const { data: transactions } = await this.walletRepository.getTransactions(churchId, { limit: 1 });
+        const { data: transactions } = await this.walletRepository.getTransactions(
+            churchId,
+            { limit: 1 }
+        );
 
         return { wallet, transaction: transactions[0] };
     }

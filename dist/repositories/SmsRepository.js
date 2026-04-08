@@ -17,6 +17,24 @@ class SmsRepository {
     // ============================================================================
     // SENDER IDS
     // ============================================================================
+    // src/repositories/SmsRepository.ts
+    // Add this method to the SmsRepository class
+    /**
+     * Return all campaigns with status = 'scheduled' whose scheduled_at
+     * timestamp is in the past (i.e. they are due to be sent now).
+     */
+    async getDueScheduledCampaigns() {
+        const query = `
+            SELECT *
+            FROM sms_campaigns
+            WHERE status = 'scheduled'
+              AND scheduled_at IS NOT NULL
+              AND scheduled_at <= NOW()
+            ORDER BY scheduled_at ASC
+        `;
+        const { rows } = await database_1.pool.query(query);
+        return rows;
+    }
     async findSenderIdByChurchAndName(churchId, senderId) {
         const query = `
             SELECT * FROM sms_sender_ids
@@ -56,12 +74,17 @@ class SmsRepository {
         ]);
         return rows[0];
     }
-    /**
-     * Legacy method - now delegates to UPSERT (kept for backward compatibility)
-     */
-    async createSenderId(churchId, data, createdBy) {
-        return this.createOrUpdateSenderId(churchId, data, createdBy);
-    }
+    //
+    // /**
+    //  * Legacy method - now delegates to UPSERT (kept for backward compatibility)
+    //  */
+    // async createSenderId(
+    //     churchId: string,
+    //     data: CreateSenderIdDTO,
+    //     createdBy?: string
+    // ): Promise<SmsSenderId> {
+    //     return this.createOrUpdateSenderId(churchId, data, createdBy);
+    // }
     /**
      * Create sender ID - handles duplicates gracefully
      * @deprecated Use createOrUpdateSenderId instead for better duplicate handling
@@ -367,36 +390,20 @@ class SmsRepository {
             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
                 RETURNING *
         `;
-        // Convert arrays to JSON strings for JSONB columns
-        const groupIdsJson = data.groupIds && data.groupIds.length > 0
-            ? JSON.stringify(data.groupIds)
-            : null;
-        const memberIdsJson = data.memberIds && data.memberIds.length > 0
-            ? JSON.stringify(data.memberIds)
-            : null;
-        const phoneNumbersJson = data.phoneNumbers && data.phoneNumbers.length > 0
-            ? JSON.stringify(data.phoneNumbers)
-            : null;
-        const uploadedContactsJson = data.uploadedContacts && data.uploadedContacts.length > 0
-            ? JSON.stringify(data.uploadedContacts)
-            : null;
-        const contactListIdsJson = data.contactListIds && data.contactListIds.length > 0
-            ? JSON.stringify(data.contactListIds)
-            : null;
         const { rows } = await database_1.pool.query(query, [
-            churchId, // $1
-            data.name || null, // $2
-            data.message, // $3
-            data.senderId || null, // $4
-            data.destinationType, // $5
-            groupIdsJson, // $6 - JSONB
-            memberIdsJson, // $7 - JSONB
-            phoneNumbersJson, // $8 - JSONB
-            uploadedContactsJson, // $9 - JSONB
-            contactListIdsJson, // $10 - JSONB
-            status, // $11
-            data.scheduledAt ? new Date(data.scheduledAt) : null, // $12
-            createdBy || null, // $13
+            churchId,
+            data.name || null,
+            data.message,
+            data.senderId || null,
+            data.destinationType,
+            data.groupIds && data.groupIds.length > 0 ? JSON.stringify(data.groupIds) : null,
+            data.memberIds && data.memberIds.length > 0 ? JSON.stringify(data.memberIds) : null,
+            data.phoneNumbers && data.phoneNumbers.length > 0 ? JSON.stringify(data.phoneNumbers) : null,
+            data.uploadedContacts && data.uploadedContacts.length > 0 ? JSON.stringify(data.uploadedContacts) : null,
+            data.contactListIds && data.contactListIds.length > 0 ? JSON.stringify(data.contactListIds) : null,
+            status,
+            data.scheduledAt ? new Date(data.scheduledAt) : null,
+            createdBy || null,
         ]);
         return rows[0];
     }

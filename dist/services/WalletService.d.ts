@@ -11,28 +11,30 @@ export interface BalanceInfo {
     canSend: boolean;
     source: 'local' | 'termii' | 'combined' | 'none';
 }
+export interface AllBalances {
+    sms: number;
+    email: number;
+    whatsapp: number;
+    voice: number;
+    currency: string;
+    termii?: {
+        balance: number;
+        currency: string;
+        smsUnitsAvailable: number;
+        pricePerSms: number;
+    } | null;
+}
 export declare class WalletService {
     private walletRepository;
     constructor();
-    /**
-     * Get comprehensive balance info from all sources
-     */
     getComprehensiveBalance(churchId: string, channel?: 'sms' | 'email' | 'whatsapp' | 'voice'): Promise<BalanceInfo>;
-    /**
-     * Check if there's sufficient balance from any source
-     */
     checkSufficientBalance(churchId: string, channel: 'sms' | 'email' | 'whatsapp' | 'voice', unitsRequired: number): Promise<{
         sufficient: boolean;
         balanceInfo: BalanceInfo;
         useTermii: boolean;
     }>;
-    /**
-     * Get balance for a specific channel (backward compatible)
-     */
     getBalance(churchId: string, channel: 'sms' | 'email' | 'whatsapp' | 'voice'): Promise<number>;
-    /**
-     * Get full wallet info
-     */
+    getAllBalances(churchId: string): Promise<AllBalances>;
     getWallet(churchId: string): Promise<Wallet>;
     creditBalance(churchId: string, channel: 'sms' | 'email' | 'whatsapp' | 'voice' | 'all', units: number, details: {
         amount?: number;
@@ -41,11 +43,25 @@ export declare class WalletService {
         paymentMethod?: string;
         paymentReference?: string;
         type?: 'credit' | 'bonus';
+        status?: string;
     }, createdBy?: string): Promise<Wallet>;
     debitBalance(churchId: string, channel: 'sms' | 'email' | 'whatsapp' | 'voice', units: number, details: {
         reference?: string;
         description?: string;
     }, createdBy?: string): Promise<Wallet>;
+    /**
+     * Convenience wrapper used by WhatsAppService and other callers that pass
+     * the reference and description as positional arguments instead of an
+     * object.  Delegates to the existing `debitBalance` method.
+     *
+     * @param churchId    - Church whose wallet will be debited
+     * @param channel     - Messaging channel to debit
+     * @param units       - Number of units to deduct
+     * @param reference   - Transaction reference (e.g. campaign / message ID)
+     * @param description - Human-readable description of the debit
+     * @param createdBy   - Optional user ID that triggered the debit
+     */
+    deductUnits(churchId: string, channel: 'sms' | 'email' | 'whatsapp' | 'voice', units: number, reference: string, description: string, createdBy?: string): Promise<Wallet>;
     refundTransaction(transactionId: string, refundAmount: number, reason: string, createdBy?: string): Promise<WalletTransaction>;
     getTransactions(churchId: string, filters: {
         channel?: string;
@@ -60,6 +76,13 @@ export declare class WalletService {
         data: WalletTransaction[];
         total: number;
     }>;
+    exportTransactions(churchId: string, filters: {
+        channel?: string;
+        type?: string;
+        status?: string;
+        startDate?: string;
+        endDate?: string;
+    }): Promise<string>;
     getAnalytics(churchId: string, startDate: string, endDate: string): Promise<any>;
     getAllPricing(): Promise<MessagingPricing[]>;
     getPricing(channel: string, countryCode?: string): Promise<MessagingPricing | null>;

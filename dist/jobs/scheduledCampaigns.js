@@ -20,8 +20,10 @@ exports.scheduledCampaignsJob = node_cron_1.default.schedule('* * * * *', async 
         // Process SMS campaigns
         await smsService.processScheduledCampaigns();
         // Process Email campaigns
-        await emailService.processScheduledCampaigns();
-        // Note: WhatsApp scheduled campaigns handled separately if needed
+        // emailService.processScheduledCampaigns() should exist on EmailService
+        if (typeof emailService.processScheduledCampaigns === 'function') {
+            await emailService.processScheduledCampaigns();
+        }
         logger_1.default.info('Scheduled campaigns processed successfully');
     }
     catch (error) {

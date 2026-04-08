@@ -31,6 +31,26 @@ export class SmsRepository {
     // ============================================================================
     // SENDER IDS
     // ============================================================================
+// src/repositories/SmsRepository.ts
+// Add this method to the SmsRepository class
+
+    /**
+     * Return all campaigns with status = 'scheduled' whose scheduled_at
+     * timestamp is in the past (i.e. they are due to be sent now).
+     */
+    async getDueScheduledCampaigns(): Promise<SmsCampaign[]> {
+        const query = `
+            SELECT *
+            FROM sms_campaigns
+            WHERE status = 'scheduled'
+              AND scheduled_at IS NOT NULL
+              AND scheduled_at <= NOW()
+            ORDER BY scheduled_at ASC
+        `;
+
+        const { rows } = await pool.query(query);
+        return rows;
+    }
 
     async findSenderIdByChurchAndName(churchId: string, senderId: string): Promise<SmsSenderId | null> {
         const query = `
@@ -820,7 +840,7 @@ export class SmsRepository {
 
     async updateMessageStatus(
         messageId: string,
-        status: 'pending' | 'sent' | 'delivered' | 'failed' | 'rejected',
+        status: string,
         externalId?: string,
         errorMessage?: string
     ): Promise<SmsMessage | null> {

@@ -1,5 +1,20 @@
 import { Request, Response, NextFunction } from 'express';
-export type UserRole = 'admin' | 'pastor' | 'staff' | 'finance' | 'member' | 'super_admin';
+/**
+ * All valid roles in the system.
+ *
+ * Core roles:
+ *   admin          – Full access to all features
+ *   super_admin    – Super-set of admin; platform-level access
+ *   pastor         – Access to most features except critical admin functions
+ *   finance        – Access to financial features
+ *   staff          – Limited access to member and event management
+ *   member         – Read-only access to their own data
+ *
+ * Follow-up department roles:
+ *   follow_up_leader      – Can create/manage assignments within the dept
+ *   follow_up_coordinator – Can create assignments; limited management access
+ */
+export type UserRole = 'admin' | 'super_admin' | 'pastor' | 'finance' | 'staff' | 'member' | 'follow_up_leader' | 'follow_up_coordinator';
 interface JwtPayload {
     id: string;
     email: string;
@@ -16,32 +31,30 @@ declare global {
     }
 }
 /**
- * Middleware to authenticate requests using JWT
- * Extracts and validates the Bearer token from Authorization header
+ * Authenticate requests using a Bearer JWT.
+ * Extracts and validates the token from the Authorization header.
  */
 export declare const authenticate: (req: Request, _res: Response, next: NextFunction) => Promise<void>;
 /**
- * Middleware to authorize requests based on user roles
- * Must be used after authenticate middleware
+ * Authorize requests based on user roles.
+ * Must be used AFTER the `authenticate` middleware.
  *
- * @param roles - Array of roles that are allowed to access the route
+ * @param roles - Single role or array of roles allowed to access the route.
  *
- * Role hierarchy (highest to lowest):
- * - admin: Full access to all features
- * - pastor: Access to most features except critical admin functions
- * - finance: Access to financial features
- * - staff: Limited access to member and event management
- * - member: Read-only access to their own data
+ * Role hierarchy (highest → lowest):
+ *   super_admin > admin > pastor > finance > staff > member
+ *   follow_up_leader > follow_up_coordinator (department-scoped)
  */
-export declare const authorize: (roles: UserRole[] | UserRole) => (req: Request, _res: Response, next: NextFunction) => void;
+export declare const authorize: (roles: UserRole | UserRole[]) => (req: Request, _res: Response, next: NextFunction) => void;
 /**
- * Middleware to check if user belongs to the same church
- * Used to ensure multi-tenant data isolation
+ * Ensure the authenticated user belongs to a church.
+ * Used to enforce multi-tenant data isolation.
  */
 export declare const requireSameChurch: (req: Request, _res: Response, next: NextFunction) => void;
 /**
- * Middleware for optional authentication
- * Sets req.user if valid token is provided, but doesn't fail if not
+ * Optional authentication.
+ * Sets req.user when a valid Bearer token is present, but never rejects the
+ * request if the token is absent or invalid.
  */
 export declare const optionalAuth: (req: Request, _res: Response, next: NextFunction) => Promise<void>;
 export {};

@@ -30,6 +30,13 @@ import {
     MessageTemplateRow,
     FollowUpChannel,
     FollowUpPriority,
+    // ── The four types that were missing from the import ──────────────────────
+    FollowUpMemberRole,
+    FollowUpMemberStatus,
+    AssignmentStatus,
+    ActivityType,
+    FollowUpStatus,
+    DeliveryStatus,
 } from '@/dtos/followup.types';
 import logger from '@config/logger';
 
@@ -41,7 +48,6 @@ export class FollowUpRepository {
     async getOrCreateDepartment(churchId: string): Promise<FollowUpDepartment> {
         const client = await pool.connect();
         try {
-            // Check if department exists
             let result = await client.query(
                 'SELECT * FROM follow_up_departments WHERE church_id = $1',
                 [churchId]
@@ -51,7 +57,6 @@ export class FollowUpRepository {
                 return this.mapDepartment(result.rows[0]);
             }
 
-            // Create new department with default settings
             const defaultSettings: FollowUpDepartmentSettings = {
                 autoAssign: false,
                 maxAssignmentsPerMember: 10,
@@ -68,7 +73,7 @@ export class FollowUpRepository {
             result = await client.query(
                 `INSERT INTO follow_up_departments (church_id, name, description, settings)
                  VALUES ($1, 'Follow Up Department', 'Department responsible for following up with first-time visitors', $2)
-                 RETURNING *`,
+                     RETURNING *`,
                 [churchId, JSON.stringify(defaultSettings)]
             );
 
@@ -84,10 +89,8 @@ export class FollowUpRepository {
     ): Promise<FollowUpDepartment> {
         const client = await pool.connect();
         try {
-            // Get current settings
             const current = await this.getOrCreateDepartment(churchId);
 
-            // Merge settings (converting to snake_case for DB storage if needed)
             const newSettings: FollowUpDepartmentSettings = {
                 ...current.settings,
                 ...settings,
@@ -101,7 +104,7 @@ export class FollowUpRepository {
                 `UPDATE follow_up_departments
                  SET settings = $1, updated_at = NOW()
                  WHERE church_id = $2
-                 RETURNING *`,
+                     RETURNING *`,
                 [JSON.stringify(newSettings), churchId]
             );
 
@@ -122,23 +125,23 @@ export class FollowUpRepository {
         const department = await this.getOrCreateDepartment(churchId);
 
         let query = `
-            SELECT 
+            SELECT
                 fm.*,
                 m.first_name,
                 m.last_name,
                 m.email,
                 m.phone,
                 m.profile_image_url,
-                (SELECT COUNT(*) FROM follow_up_assigned_members fam 
-                 JOIN follow_up_assignments fa ON fam.assignment_id = fa.id
+                (SELECT COUNT(*) FROM follow_up_assigned_members fam
+                                          JOIN follow_up_assignments fa ON fam.assignment_id = fa.id
                  WHERE fam.follow_up_member_id = fm.id AND fa.status = 'active' AND fam.status = 'active') as active_count,
-                (SELECT COUNT(*) FROM follow_up_assigned_members fam 
+                (SELECT COUNT(*) FROM follow_up_assigned_members fam
                  WHERE fam.follow_up_member_id = fm.id) as total_count,
-                (SELECT COUNT(*) FROM follow_up_assigned_members fam 
-                 JOIN follow_up_assignments fa ON fam.assignment_id = fa.id
+                (SELECT COUNT(*) FROM follow_up_assigned_members fam
+                                          JOIN follow_up_assignments fa ON fam.assignment_id = fa.id
                  WHERE fam.follow_up_member_id = fm.id AND fa.status = 'completed') as completed_count
             FROM follow_up_members fm
-            JOIN members m ON fm.member_id = m.id
+                     JOIN members m ON fm.member_id = m.id
             WHERE fm.department_id = $1
         `;
         const params: any[] = [department.id];
@@ -159,25 +162,28 @@ export class FollowUpRepository {
         return rows.map((row: FollowUpMemberRow) => this.mapMemberWithStats(row));
     }
 
-    async getMemberById(churchId: string, followUpMemberId: string): Promise<FollowUpMember | null> {
+    async getMemberById(
+        churchId: string,
+        followUpMemberId: string
+    ): Promise<FollowUpMember | null> {
         const query = `
-            SELECT 
+            SELECT
                 fm.*,
                 m.first_name,
                 m.last_name,
                 m.email,
                 m.phone,
                 m.profile_image_url,
-                (SELECT COUNT(*) FROM follow_up_assigned_members fam 
-                 JOIN follow_up_assignments fa ON fam.assignment_id = fa.id
+                (SELECT COUNT(*) FROM follow_up_assigned_members fam
+                                          JOIN follow_up_assignments fa ON fam.assignment_id = fa.id
                  WHERE fam.follow_up_member_id = fm.id AND fa.status = 'active' AND fam.status = 'active') as active_count,
-                (SELECT COUNT(*) FROM follow_up_assigned_members fam 
+                (SELECT COUNT(*) FROM follow_up_assigned_members fam
                  WHERE fam.follow_up_member_id = fm.id) as total_count,
-                (SELECT COUNT(*) FROM follow_up_assigned_members fam 
-                 JOIN follow_up_assignments fa ON fam.assignment_id = fa.id
+                (SELECT COUNT(*) FROM follow_up_assigned_members fam
+                                          JOIN follow_up_assignments fa ON fam.assignment_id = fa.id
                  WHERE fam.follow_up_member_id = fm.id AND fa.status = 'completed') as completed_count
             FROM follow_up_members fm
-            JOIN members m ON fm.member_id = m.id
+                     JOIN members m ON fm.member_id = m.id
             WHERE fm.id = $1 AND fm.church_id = $2
         `;
         const { rows } = await pool.query(query, [followUpMemberId, churchId]);
@@ -195,7 +201,6 @@ export class FollowUpRepository {
         try {
             const department = await this.getOrCreateDepartment(churchId);
 
-            // Check if member exists in church
             const memberCheck = await client.query(
                 'SELECT id FROM members WHERE id = $1 AND church_id = $2',
                 [data.memberId, churchId]
@@ -205,7 +210,6 @@ export class FollowUpRepository {
                 throw new Error('Member not found in this church');
             }
 
-            // Check if already in department
             const existingCheck = await client.query(
                 'SELECT id FROM follow_up_members WHERE department_id = $1 AND member_id = $2',
                 [department.id, data.memberId]
@@ -218,11 +222,10 @@ export class FollowUpRepository {
             const result = await client.query(
                 `INSERT INTO follow_up_members (department_id, member_id, church_id, role)
                  VALUES ($1, $2, $3, $4)
-                 RETURNING *`,
+                     RETURNING *`,
                 [department.id, data.memberId, churchId, data.role || 'member']
             );
 
-            // Get full member data
             const memberResult = await client.query(
                 'SELECT first_name, last_name, email, phone, profile_image_url FROM members WHERE id = $1',
                 [data.memberId]
@@ -281,7 +284,6 @@ export class FollowUpRepository {
         try {
             await client.query('BEGIN');
 
-            // Mark assignments as removed
             await client.query(
                 `UPDATE follow_up_assigned_members
                  SET status = 'removed', updated_at = NOW()
@@ -289,7 +291,6 @@ export class FollowUpRepository {
                 [followUpMemberId]
             );
 
-            // Remove member from department
             const result = await client.query(
                 'DELETE FROM follow_up_members WHERE id = $1 AND church_id = $2 RETURNING id',
                 [followUpMemberId, churchId]
@@ -309,8 +310,11 @@ export class FollowUpRepository {
     // ASSIGNMENTS
     // ============================================================================
 
-    async getAssignments(churchId: string, filters: FollowUpFilters): Promise<PaginatedAssignments> {
-        let whereConditions = ['fa.church_id = $1'];
+    async getAssignments(
+        churchId: string,
+        filters: FollowUpFilters
+    ): Promise<PaginatedAssignments> {
+        const whereConditions = ['fa.church_id = $1'];
         const params: any[] = [churchId];
         let paramIndex = 2;
 
@@ -336,7 +340,9 @@ export class FollowUpRepository {
 
         if (filters.assignedMemberId) {
             whereConditions.push(
-                `EXISTS (SELECT 1 FROM follow_up_assigned_members fam WHERE fam.assignment_id = fa.id AND fam.follow_up_member_id = $${paramIndex} AND fam.status = 'active')`
+                `EXISTS (SELECT 1 FROM follow_up_assigned_members fam ` +
+                `WHERE fam.assignment_id = fa.id ` +
+                `AND fam.follow_up_member_id = $${paramIndex} AND fam.status = 'active')`
             );
             params.push(filters.assignedMemberId);
             paramIndex++;
@@ -360,17 +366,15 @@ export class FollowUpRepository {
 
         const whereClause = whereConditions.join(' AND ');
 
-        // Count total
         const countResult = await pool.query(
             `SELECT COUNT(*) as total
              FROM follow_up_assignments fa
-             JOIN first_timers ft ON fa.first_timer_id = ft.id
+                      JOIN first_timers ft ON fa.first_timer_id = ft.id
              WHERE ${whereClause}`,
             params
         );
         const total = parseInt(countResult.rows[0].total);
 
-        // Get paginated results
         const page = filters.page || 1;
         const limit = filters.limit || 20;
         const offset = (page - 1) * limit;
@@ -378,34 +382,33 @@ export class FollowUpRepository {
         params.push(limit, offset);
 
         const result = await pool.query(
-            `SELECT 
-                fa.*,
-                ft.first_name as ft_first_name,
-                ft.last_name as ft_last_name,
-                ft.email as ft_email,
-                ft.phone as ft_phone,
-                ft.first_visit_date as ft_first_visit_date,
-                ft.status as ft_status,
-                ft.follow_up_status as ft_follow_up_status,
-                ft.how_did_you_hear as ft_how_did_you_hear,
-                ft.address as ft_address,
-                ft.notes as ft_notes
+            `SELECT
+                 fa.*,
+                 ft.first_name as ft_first_name,
+                 ft.last_name as ft_last_name,
+                 ft.email as ft_email,
+                 ft.phone as ft_phone,
+                 ft.first_visit_date as ft_first_visit_date,
+                 ft.status as ft_status,
+                 ft.follow_up_status as ft_follow_up_status,
+                 ft.how_did_you_hear as ft_how_did_you_hear,
+                 ft.address as ft_address,
+                 ft.notes as ft_notes
              FROM follow_up_assignments fa
-             JOIN first_timers ft ON fa.first_timer_id = ft.id
+                      JOIN first_timers ft ON fa.first_timer_id = ft.id
              WHERE ${whereClause}
-             ORDER BY 
-                CASE fa.priority 
-                    WHEN 'urgent' THEN 1 
-                    WHEN 'high' THEN 2 
-                    WHEN 'medium' THEN 3 
-                    WHEN 'low' THEN 4 
-                END,
-                fa.created_at DESC
-             LIMIT $${paramIndex} OFFSET $${paramIndex + 1}`,
+             ORDER BY
+                 CASE fa.priority
+                     WHEN 'urgent' THEN 1
+                     WHEN 'high' THEN 2
+                     WHEN 'medium' THEN 3
+                     WHEN 'low' THEN 4
+                     END,
+                 fa.created_at DESC
+                 LIMIT $${paramIndex} OFFSET $${paramIndex + 1}`,
             params
         );
 
-        // Get assigned members for each assignment
         const assignments: FollowUpAssignment[] = [];
         for (const row of result.rows) {
             const assignedMembers = await this.getAssignedMembers(row.id);
@@ -423,22 +426,25 @@ export class FollowUpRepository {
         };
     }
 
-    async getAssignmentById(churchId: string, assignmentId: string): Promise<FollowUpAssignment | null> {
+    async getAssignmentById(
+        churchId: string,
+        assignmentId: string
+    ): Promise<FollowUpAssignment | null> {
         const result = await pool.query(
-            `SELECT 
-                fa.*,
-                ft.first_name as ft_first_name,
-                ft.last_name as ft_last_name,
-                ft.email as ft_email,
-                ft.phone as ft_phone,
-                ft.first_visit_date as ft_first_visit_date,
-                ft.status as ft_status,
-                ft.follow_up_status as ft_follow_up_status,
-                ft.how_did_you_hear as ft_how_did_you_hear,
-                ft.address as ft_address,
-                ft.notes as ft_notes
+            `SELECT
+                 fa.*,
+                 ft.first_name as ft_first_name,
+                 ft.last_name as ft_last_name,
+                 ft.email as ft_email,
+                 ft.phone as ft_phone,
+                 ft.first_visit_date as ft_first_visit_date,
+                 ft.status as ft_status,
+                 ft.follow_up_status as ft_follow_up_status,
+                 ft.how_did_you_hear as ft_how_did_you_hear,
+                 ft.address as ft_address,
+                 ft.notes as ft_notes
              FROM follow_up_assignments fa
-             JOIN first_timers ft ON fa.first_timer_id = ft.id
+                      JOIN first_timers ft ON fa.first_timer_id = ft.id
              WHERE fa.id = $1 AND fa.church_id = $2`,
             [assignmentId, churchId]
         );
@@ -449,25 +455,28 @@ export class FollowUpRepository {
         return this.mapAssignment(result.rows[0], assignedMembers);
     }
 
-    async getAssignmentByFirstTimer(churchId: string, firstTimerId: string): Promise<FollowUpAssignment | null> {
+    async getAssignmentByFirstTimer(
+        churchId: string,
+        firstTimerId: string
+    ): Promise<FollowUpAssignment | null> {
         const result = await pool.query(
-            `SELECT 
-                fa.*,
-                ft.first_name as ft_first_name,
-                ft.last_name as ft_last_name,
-                ft.email as ft_email,
-                ft.phone as ft_phone,
-                ft.first_visit_date as ft_first_visit_date,
-                ft.status as ft_status,
-                ft.follow_up_status as ft_follow_up_status,
-                ft.how_did_you_hear as ft_how_did_you_hear,
-                ft.address as ft_address,
-                ft.notes as ft_notes
+            `SELECT
+                 fa.*,
+                 ft.first_name as ft_first_name,
+                 ft.last_name as ft_last_name,
+                 ft.email as ft_email,
+                 ft.phone as ft_phone,
+                 ft.first_visit_date as ft_first_visit_date,
+                 ft.status as ft_status,
+                 ft.follow_up_status as ft_follow_up_status,
+                 ft.how_did_you_hear as ft_how_did_you_hear,
+                 ft.address as ft_address,
+                 ft.notes as ft_notes
              FROM follow_up_assignments fa
-             JOIN first_timers ft ON fa.first_timer_id = ft.id
+                      JOIN first_timers ft ON fa.first_timer_id = ft.id
              WHERE fa.first_timer_id = $1 AND fa.church_id = $2 AND fa.status = 'active'
              ORDER BY fa.created_at DESC
-             LIMIT 1`,
+                 LIMIT 1`,
             [firstTimerId, churchId]
         );
 
@@ -486,7 +495,6 @@ export class FollowUpRepository {
         try {
             await client.query('BEGIN');
 
-            // Verify first timer exists
             const ftCheck = await client.query(
                 'SELECT id, status FROM first_timers WHERE id = $1 AND church_id = $2',
                 [data.firstTimerId, churchId]
@@ -496,9 +504,8 @@ export class FollowUpRepository {
                 throw new Error('First timer not found');
             }
 
-            // Check if active assignment already exists
             const existingCheck = await client.query(
-                `SELECT id FROM follow_up_assignments 
+                `SELECT id FROM follow_up_assignments
                  WHERE first_timer_id = $1 AND church_id = $2 AND status = 'active'`,
                 [data.firstTimerId, churchId]
             );
@@ -507,12 +514,11 @@ export class FollowUpRepository {
                 throw new Error('An active assignment already exists for this first timer');
             }
 
-            // Create assignment
             const assignmentResult = await client.query(
-                `INSERT INTO follow_up_assignments 
+                `INSERT INTO follow_up_assignments
                  (church_id, first_timer_id, priority, due_date, notes, tags, created_by)
                  VALUES ($1, $2, $3, $4, $5, $6, $7)
-                 RETURNING *`,
+                     RETURNING *`,
                 [
                     churchId,
                     data.firstTimerId,
@@ -526,18 +532,16 @@ export class FollowUpRepository {
 
             const assignmentId = assignmentResult.rows[0].id;
 
-            // Create assigned member records
             const primaryMemberId = data.primaryMemberId || data.assignedMemberIds[0];
             for (const memberId of data.assignedMemberIds) {
                 await client.query(
-                    `INSERT INTO follow_up_assigned_members 
-                     (assignment_id, follow_up_member_id, is_primary)
+                    `INSERT INTO follow_up_assigned_members
+                         (assignment_id, follow_up_member_id, is_primary)
                      VALUES ($1, $2, $3)`,
                     [assignmentId, memberId, memberId === primaryMemberId]
                 );
             }
 
-            // Update first timer follow_up_status
             await client.query(
                 `UPDATE first_timers SET follow_up_status = 'scheduled', updated_at = NOW()
                  WHERE id = $1`,
@@ -622,7 +626,7 @@ export class FollowUpRepository {
                 `UPDATE follow_up_assignments
                  SET status = 'completed', completed_at = NOW(), completion_notes = $1, updated_at = NOW()
                  WHERE id = $2 AND church_id = $3
-                 RETURNING first_timer_id`,
+                     RETURNING first_timer_id`,
                 [notes || null, assignmentId, churchId]
             );
 
@@ -631,7 +635,6 @@ export class FollowUpRepository {
                 return null;
             }
 
-            // Update assigned members
             await client.query(
                 `UPDATE follow_up_assigned_members
                  SET status = 'completed', completed_at = NOW()
@@ -639,9 +642,8 @@ export class FollowUpRepository {
                 [assignmentId]
             );
 
-            // Update first timer status
             await client.query(
-                `UPDATE first_timers 
+                `UPDATE first_timers
                  SET follow_up_status = 'completed', updated_at = NOW()
                  WHERE id = $1`,
                 [result.rows[0].first_timer_id]
@@ -660,16 +662,16 @@ export class FollowUpRepository {
 
     private async getAssignedMembers(assignmentId: string): Promise<AssignedMember[]> {
         const result = await pool.query(
-            `SELECT 
-                fam.*,
-                m.first_name,
-                m.last_name,
-                m.email,
-                m.phone,
-                m.profile_image_url
+            `SELECT
+                 fam.*,
+                 m.first_name,
+                 m.last_name,
+                 m.email,
+                 m.phone,
+                 m.profile_image_url
              FROM follow_up_assigned_members fam
-             JOIN follow_up_members fm ON fam.follow_up_member_id = fm.id
-             JOIN members m ON fm.member_id = m.id
+                      JOIN follow_up_members fm ON fam.follow_up_member_id = fm.id
+                      JOIN members m ON fm.member_id = m.id
              WHERE fam.assignment_id = $1 AND fam.status != 'removed'
              ORDER BY fam.is_primary DESC, fam.assigned_at`,
             [assignmentId]
@@ -703,7 +705,7 @@ export class FollowUpRepository {
         assignmentId: string,
         filters: ActivityFilters
     ): Promise<PaginatedActivities> {
-        let whereConditions = ['fua.assignment_id = $1', 'fua.church_id = $2'];
+        const whereConditions = ['fua.assignment_id = $1', 'fua.church_id = $2'];
         const params: any[] = [assignmentId, churchId];
         let paramIndex = 3;
 
@@ -721,14 +723,12 @@ export class FollowUpRepository {
 
         const whereClause = whereConditions.join(' AND ');
 
-        // Count
         const countResult = await pool.query(
             `SELECT COUNT(*) as total FROM follow_up_activities fua WHERE ${whereClause}`,
             params
         );
         const total = parseInt(countResult.rows[0].total);
 
-        // Paginated results
         const page = filters.page || 1;
         const limit = filters.limit || 20;
         const offset = (page - 1) * limit;
@@ -736,15 +736,15 @@ export class FollowUpRepository {
         params.push(limit, offset);
 
         const result = await pool.query(
-            `SELECT 
-                fua.*,
-                u.first_name as performer_first_name,
-                u.last_name as performer_last_name
+            `SELECT
+                 fua.*,
+                 u.first_name as performer_first_name,
+                 u.last_name as performer_last_name
              FROM follow_up_activities fua
-             LEFT JOIN users u ON fua.performed_by = u.id
+                      LEFT JOIN users u ON fua.performed_by = u.id
              WHERE ${whereClause}
              ORDER BY fua.created_at DESC
-             LIMIT $${paramIndex} OFFSET $${paramIndex + 1}`,
+                 LIMIT $${paramIndex} OFFSET $${paramIndex + 1}`,
             params
         );
 
@@ -768,7 +768,7 @@ export class FollowUpRepository {
             `INSERT INTO follow_up_activities
              (assignment_id, first_timer_id, church_id, performed_by, channel, activity_type, status, subject, content, duration_minutes, metadata)
              VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
-             RETURNING *`,
+                 RETURNING *`,
             [
                 data.assignmentId,
                 data.firstTimerId,
@@ -784,15 +784,13 @@ export class FollowUpRepository {
             ]
         );
 
-        // Update first timer last_contact_date
         await pool.query(
-            `UPDATE first_timers 
+            `UPDATE first_timers
              SET follow_up_status = 'contacted', last_contact_date = NOW(), updated_at = NOW()
              WHERE id = $1`,
             [data.firstTimerId]
         );
 
-        // Get performer info
         const userResult = await pool.query(
             'SELECT first_name, last_name FROM users WHERE id = $1',
             [userId]
@@ -824,7 +822,7 @@ export class FollowUpRepository {
             `INSERT INTO follow_up_activities
              (assignment_id, first_timer_id, church_id, performed_by, channel, activity_type, status, subject, content, external_message_id, delivery_status, scheduled_at)
              VALUES ($1, $2, $3, $4, $5, 'message_sent', $6, $7, $8, $9, $10, $11)
-             RETURNING *`,
+                 RETURNING *`,
             [
                 data.assignmentId,
                 data.firstTimerId,
@@ -840,9 +838,8 @@ export class FollowUpRepository {
             ]
         );
 
-        // Update first timer
         await pool.query(
-            `UPDATE first_timers 
+            `UPDATE first_timers
              SET follow_up_status = 'contacted', last_contact_date = NOW(), updated_at = NOW()
              WHERE id = $1 AND follow_up_status IN ('pending', 'scheduled')`,
             [data.firstTimerId]
@@ -882,7 +879,7 @@ export class FollowUpRepository {
             `UPDATE follow_up_activities
              SET response = $1, response_at = NOW(), updated_at = NOW()
              WHERE id = $2 AND church_id = $3
-             RETURNING *`,
+                 RETURNING *`,
             [response, activityId, churchId]
         );
 
@@ -924,7 +921,6 @@ export class FollowUpRepository {
         userId: string,
         data: CreateTemplateDTO
     ): Promise<MessageTemplate> {
-        // Extract variables from content
         const variableMatches = data.content.match(/\{\{(\w+)\}\}/g) || [];
         const variables = variableMatches.map((v) => v.replace(/\{\{|\}\}/g, ''));
 
@@ -932,7 +928,7 @@ export class FollowUpRepository {
             `INSERT INTO follow_up_templates
              (church_id, name, channel, subject, content, variables, is_default, created_by)
              VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-             RETURNING *`,
+                 RETURNING *`,
             [
                 churchId,
                 data.name,
@@ -971,7 +967,6 @@ export class FollowUpRepository {
             setClauses.push(`content = $${paramIndex++}`);
             params.push(data.content);
 
-            // Update variables
             const variableMatches = data.content.match(/\{\{(\w+)\}\}/g) || [];
             const variables = variableMatches.map((v) => v.replace(/\{\{|\}\}/g, ''));
             setClauses.push(`variables = $${paramIndex++}`);
@@ -1003,7 +998,7 @@ export class FollowUpRepository {
             `UPDATE follow_up_templates
              SET ${setClauses.join(', ')}
              WHERE id = $${paramIndex++} AND church_id = $${paramIndex}
-             RETURNING *`,
+                 RETURNING *`,
             params
         );
 
@@ -1023,13 +1018,12 @@ export class FollowUpRepository {
     // ============================================================================
 
     async getStatistics(churchId: string): Promise<FollowUpStatistics> {
-        // Basic counts
         const countsResult = await pool.query(
             `SELECT
-                COUNT(*) as total,
-                COUNT(*) FILTER (WHERE status = 'active') as active,
-                COUNT(*) FILTER (WHERE status = 'completed') as completed,
-                COUNT(*) FILTER (WHERE status = 'active' AND due_date < NOW()) as overdue
+                 COUNT(*) as total,
+                 COUNT(*) FILTER (WHERE status = 'active') as active,
+                 COUNT(*) FILTER (WHERE status = 'completed') as completed,
+                 COUNT(*) FILTER (WHERE status = 'active' AND due_date < NOW()) as overdue
              FROM follow_up_assignments
              WHERE church_id = $1`,
             [churchId]
@@ -1037,7 +1031,6 @@ export class FollowUpRepository {
 
         const counts = countsResult.rows[0];
 
-        // Average completion days
         const avgResult = await pool.query(
             `SELECT AVG(EXTRACT(EPOCH FROM (completed_at - created_at)) / 86400) as avg_days
              FROM follow_up_assignments
@@ -1045,7 +1038,6 @@ export class FollowUpRepository {
             [churchId]
         );
 
-        // Activities by channel
         const channelResult = await pool.query(
             `SELECT channel, COUNT(*) as count
              FROM follow_up_activities
@@ -1061,17 +1053,16 @@ export class FollowUpRepository {
             totalActivities += parseInt(row.count);
         });
 
-        // Member performance
         const performanceResult = await pool.query(
-            `SELECT 
-                fm.id as member_id,
-                m.first_name || ' ' || m.last_name as member_name,
-                COUNT(*) FILTER (WHERE fa.status = 'active') as active_count,
-                COUNT(*) FILTER (WHERE fa.status = 'completed') as completed_count
+            `SELECT
+                 fm.id as member_id,
+                 m.first_name || ' ' || m.last_name as member_name,
+                 COUNT(*) FILTER (WHERE fa.status = 'active') as active_count,
+                 COUNT(*) FILTER (WHERE fa.status = 'completed') as completed_count
              FROM follow_up_members fm
-             JOIN members m ON fm.member_id = m.id
-             LEFT JOIN follow_up_assigned_members fam ON fm.id = fam.follow_up_member_id
-             LEFT JOIN follow_up_assignments fa ON fam.assignment_id = fa.id
+                      JOIN members m ON fm.member_id = m.id
+                      LEFT JOIN follow_up_assigned_members fam ON fm.id = fam.follow_up_member_id
+                      LEFT JOIN follow_up_assignments fa ON fam.assignment_id = fa.id
              WHERE fm.church_id = $1
              GROUP BY fm.id, m.first_name, m.last_name`,
             [churchId]
@@ -1085,16 +1076,18 @@ export class FollowUpRepository {
                 memberName: row.member_name,
                 activeCount: active,
                 completedCount: completed,
-                successRate: active + completed > 0 ? Math.round((completed / (active + completed)) * 100) : 0,
+                successRate:
+                    active + completed > 0
+                        ? Math.round((completed / (active + completed)) * 100)
+                        : 0,
             };
         });
 
-        // Weekly trend
         const trendResult = await pool.query(
-            `SELECT 
-                TO_CHAR(DATE_TRUNC('week', created_at), 'Mon DD') as week,
-                COUNT(*) as new_assignments,
-                COUNT(*) FILTER (WHERE status = 'completed') as completed
+            `SELECT
+                 TO_CHAR(DATE_TRUNC('week', created_at), 'Mon DD') as week,
+                 COUNT(*) as new_assignments,
+                 COUNT(*) FILTER (WHERE status = 'completed') as completed
              FROM follow_up_assignments
              WHERE church_id = $1 AND created_at >= NOW() - INTERVAL '8 weeks'
              GROUP BY DATE_TRUNC('week', created_at)
@@ -1116,7 +1109,9 @@ export class FollowUpRepository {
             activeAssignments: parseInt(counts.active) || 0,
             completedAssignments: completed,
             overdueAssignments: parseInt(counts.overdue) || 0,
-            averageCompletionDays: Math.round(parseFloat(avgResult.rows[0]?.avg_days) || 0),
+            averageCompletionDays: Math.round(
+                parseFloat(avgResult.rows[0]?.avg_days) || 0
+            ),
             totalActivities,
             activitiesByChannel: activitiesByChannel as Record<FollowUpChannel, number>,
             successRate: total > 0 ? Math.round((completed / total) * 100) : 0,
@@ -1134,7 +1129,7 @@ export class FollowUpRepository {
             `SELECT ft.*
              FROM first_timers ft
              WHERE ft.church_id = $1
-             AND ft.status != 'converted'
+               AND ft.status != 'converted'
              AND NOT EXISTS (
                  SELECT 1 FROM follow_up_assignments fa
                  WHERE fa.first_timer_id = ft.id
@@ -1151,7 +1146,8 @@ export class FollowUpRepository {
     // ============================================================================
 
     private mapDepartment(row: FollowUpDepartmentRow): FollowUpDepartment {
-        const settings = typeof row.settings === 'string' ? JSON.parse(row.settings) : row.settings;
+        const settings =
+            typeof row.settings === 'string' ? JSON.parse(row.settings) : row.settings;
         return {
             id: row.id,
             churchId: row.church_id,
@@ -1160,17 +1156,33 @@ export class FollowUpRepository {
             isActive: row.is_active,
             settings: {
                 autoAssign: settings.autoAssign ?? settings.auto_assign ?? false,
-                maxAssignmentsPerMember: settings.maxAssignmentsPerMember ?? settings.max_assignments_per_member ?? 10,
-                followUpDeadlineDays: settings.followUpDeadlineDays ?? settings.follow_up_deadline_days ?? 7,
-                reminderIntervals: settings.reminderIntervals ?? settings.reminder_intervals ?? [1, 3, 7],
-                defaultMessageTemplates: settings.defaultMessageTemplates ?? settings.default_message_templates ?? {},
+                maxAssignmentsPerMember:
+                    settings.maxAssignmentsPerMember ??
+                    settings.max_assignments_per_member ??
+                    10,
+                followUpDeadlineDays:
+                    settings.followUpDeadlineDays ??
+                    settings.follow_up_deadline_days ??
+                    7,
+                reminderIntervals:
+                    settings.reminderIntervals ?? settings.reminder_intervals ?? [1, 3, 7],
+                defaultMessageTemplates:
+                    settings.defaultMessageTemplates ??
+                    settings.default_message_templates ??
+                    {},
                 notificationPreferences: {
-                    notifyOnNewAssignment: settings.notificationPreferences?.notifyOnNewAssignment ??
-                        settings.notification_preferences?.notify_on_new_assignment ?? true,
-                    notifyOnDeadline: settings.notificationPreferences?.notifyOnDeadline ??
-                        settings.notification_preferences?.notify_on_deadline ?? true,
-                    notifyOnResponse: settings.notificationPreferences?.notifyOnResponse ??
-                        settings.notification_preferences?.notify_on_response ?? true,
+                    notifyOnNewAssignment:
+                        settings.notificationPreferences?.notifyOnNewAssignment ??
+                        settings.notification_preferences?.notify_on_new_assignment ??
+                        true,
+                    notifyOnDeadline:
+                        settings.notificationPreferences?.notifyOnDeadline ??
+                        settings.notification_preferences?.notify_on_deadline ??
+                        true,
+                    notifyOnResponse:
+                        settings.notificationPreferences?.notifyOnResponse ??
+                        settings.notification_preferences?.notify_on_response ??
+                        true,
                 },
             },
             createdAt: row.created_at,
@@ -1207,7 +1219,10 @@ export class FollowUpRepository {
         };
     }
 
-    private mapAssignment(row: FollowUpAssignmentRow, assignedMembers: AssignedMember[]): FollowUpAssignment {
+    private mapAssignment(
+        row: FollowUpAssignmentRow,
+        assignedMembers: AssignedMember[]
+    ): FollowUpAssignment {
         return {
             id: row.id,
             churchId: row.church_id,

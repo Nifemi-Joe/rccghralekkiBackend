@@ -74,7 +74,11 @@ export type NotificationType =
     // Wallet/Credits notifications
     | 'credits_purchased'
     | 'credits_low'
-    | 'credits_depleted';
+    | 'credits_depleted'
+    | 'follow_up_assignment'
+    | 'follow_up_deadline'
+    | 'follow_up_response'
+    | 'new_first_timer_for_followup'
 
 export interface Notification {
     id: string;
@@ -158,12 +162,7 @@ export interface NotificationStats {
     total: number;
     unread: number;
     byType: Record<string, number>;
-    byPriority: {
-        low: number;
-        medium: number;
-        high: number;
-        urgent: number;
-    };
+    byPriority: Record<string, number>;
     recentCount: number; // Last 24 hours
 }
 
@@ -185,6 +184,7 @@ export type NotificationActionType =
     | 'external_link'
     | 'dismiss'
     | 'call_api';
+
 
 // Helper function to get notification icon based on type
 export function getNotificationIcon(type: NotificationType): string {

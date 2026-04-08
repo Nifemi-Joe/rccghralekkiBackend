@@ -1,10 +1,41 @@
+// src/middleware/authenticate.ts
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { AppError } from '@utils/AppError';
 import logger from '@config/logger';
 
-// Valid roles in the system
-export type UserRole = 'admin' | 'pastor' | 'staff' | 'finance' | 'member' | 'super_admin';
+// ============================================================================
+// USER ROLES
+// ============================================================================
+
+/**
+ * All valid roles in the system.
+ *
+ * Core roles:
+ *   admin          – Full access to all features
+ *   super_admin    – Super-set of admin; platform-level access
+ *   pastor         – Access to most features except critical admin functions
+ *   finance        – Access to financial features
+ *   staff          – Limited access to member and event management
+ *   member         – Read-only access to their own data
+ *
+ * Follow-up department roles:
+ *   follow_up_leader      – Can create/manage assignments within the dept
+ *   follow_up_coordinator – Can create assignments; limited management access
+ */
+export type UserRole =
+    | 'admin'
+    | 'super_admin'
+    | 'pastor'
+    | 'finance'
+    | 'staff'
+    | 'member'
+    | 'follow_up_leader'
+    | 'follow_up_coordinator';
+
+// ============================================================================
+// JWT PAYLOAD
+// ============================================================================
 
 interface JwtPayload {
     id: string;
@@ -15,6 +46,10 @@ interface JwtPayload {
     role: UserRole;
 }
 
+// ============================================================================
+// AUGMENT EXPRESS REQUEST
+// ============================================================================
+
 declare global {
     namespace Express {
         interface Request {
@@ -23,9 +58,13 @@ declare global {
     }
 }
 
+// ============================================================================
+// MIDDLEWARE
+// ============================================================================
+
 /**
- * Middleware to authenticate requests using JWT
- * Extracts and validates the Bearer token from Authorization header
+ * Authenticate requests using a Bearer JWT.
+ * Extracts and validates the token from the Authorization header.
  */
 export const authenticate = async (
     req: Request,
@@ -40,7 +79,7 @@ export const authenticate = async (
         }
 
         const token = authHeader.substring(7);
-        const jwtSecret = process.env.JWT_SECRET || "SecretKey123!";
+        const jwtSecret = process.env.JWT_SECRET || 'SecretKey123!';
 
         if (!jwtSecret) {
             logger.error('JWT_SECRET is not defined');
@@ -63,30 +102,29 @@ export const authenticate = async (
 };
 
 /**
- * Middleware to authorize requests based on user roles
- * Must be used after authenticate middleware
+ * Authorize requests based on user roles.
+ * Must be used AFTER the `authenticate` middleware.
  *
- * @param roles - Array of roles that are allowed to access the route
+ * @param roles - Single role or array of roles allowed to access the route.
  *
- * Role hierarchy (highest to lowest):
- * - admin: Full access to all features
- * - pastor: Access to most features except critical admin functions
- * - finance: Access to financial features
- * - staff: Limited access to member and event management
- * - member: Read-only access to their own data
+ * Role hierarchy (highest → lowest):
+ *   super_admin > admin > pastor > finance > staff > member
+ *   follow_up_leader > follow_up_coordinator (department-scoped)
  */
-export const authorize = (roles: UserRole[] | UserRole) => {
+export const authorize = (roles: UserRole | UserRole[]) => {
     return (req: Request, _res: Response, next: NextFunction): void => {
         if (!req.user) {
             next(new AppError('Authentication required', 401));
             return;
         }
 
-        // Convert single role to array for consistent handling
         const allowedRoles = Array.isArray(roles) ? roles : [roles];
 
         if (!allowedRoles.includes(req.user.role)) {
-            logger.warn(`Access denied for user ${req.user.id} with role ${req.user.role}. Required roles: ${allowedRoles.join(', ')}`);
+            logger.warn(
+                `Access denied for user ${req.user.id} with role ${req.user.role}. ` +
+                `Required roles: ${allowedRoles.join(', ')}`
+            );
             next(new AppError('Insufficient permissions', 403));
             return;
         }
@@ -96,22 +134,27 @@ export const authorize = (roles: UserRole[] | UserRole) => {
 };
 
 /**
- * Middleware to check if user belongs to the same church
- * Used to ensure multi-tenant data isolation
+ * Ensure the authenticated user belongs to a church.
+ * Used to enforce multi-tenant data isolation.
  */
-export const requireSameChurch = (req: Request, _res: Response, next: NextFunction): void => {
+export const requireSameChurch = (
+    req: Request,
+    _res: Response,
+    next: NextFunction
+): void => {
     if (!req.user?.churchId) {
         next(new AppError('Church ID not found in token', 401));
         return;
     }
 
-    // The churchId is available in req.user for downstream use
+    // churchId is available in req.user for downstream middleware / handlers
     next();
 };
 
 /**
- * Middleware for optional authentication
- * Sets req.user if valid token is provided, but doesn't fail if not
+ * Optional authentication.
+ * Sets req.user when a valid Bearer token is present, but never rejects the
+ * request if the token is absent or invalid.
  */
 export const optionalAuth = async (
     req: Request,
@@ -122,13 +165,12 @@ export const optionalAuth = async (
         const authHeader = req.headers.authorization;
 
         if (!authHeader || !authHeader.startsWith('Bearer ')) {
-            // No token provided, continue without user
             next();
             return;
         }
 
         const token = authHeader.substring(7);
-        const jwtSecret = process.env.JWT_SECRET || "SecretKey123!";
+        const jwtSecret = process.env.JWT_SECRET || 'SecretKey123!';
 
         if (!jwtSecret) {
             next();
@@ -138,8 +180,8 @@ export const optionalAuth = async (
         const decoded = jwt.verify(token, jwtSecret) as JwtPayload;
         req.user = decoded;
         next();
-    } catch (error) {
-        // Token invalid or expired, continue without user
+    } catch {
+        // Invalid / expired token — continue without a user
         next();
     }
 };
