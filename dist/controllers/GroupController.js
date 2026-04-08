@@ -3,6 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.GroupController = void 0;
 const GroupService_1 = require("@services/GroupService");
 const responseHandler_1 = require("@utils/responseHandler");
+const AppError_1 = require("@utils/AppError");
 class GroupController {
     constructor() {
         // ============================================================================
@@ -25,7 +26,11 @@ class GroupController {
                     churchId,
                     search: req.query.search,
                     typeId: req.query.typeId,
-                    isActive: req.query.isActive === 'true' ? true : req.query.isActive === 'false' ? false : undefined,
+                    isActive: req.query.isActive === 'true'
+                        ? true
+                        : req.query.isActive === 'false'
+                            ? false
+                            : undefined,
                     leaderId: req.query.leaderId,
                     page: parseInt(req.query.page) || 1,
                     limit: parseInt(req.query.limit) || 20,
@@ -269,6 +274,81 @@ class GroupController {
             }
         };
         this.groupService = new GroupService_1.GroupService();
+        // ── Explicitly bind every approval method in the constructor ──
+        this.getPendingApprovals = this.getPendingApprovals.bind(this);
+        this.approveGroup = this.approveGroup.bind(this);
+        this.rejectGroup = this.rejectGroup.bind(this);
+        this.approveGroupMember = this.approveGroupMember.bind(this);
+        this.rejectGroupMember = this.rejectGroupMember.bind(this);
+    }
+    // ============================================================================
+    // APPROVAL ENDPOINTS
+    // ============================================================================
+    async getPendingApprovals(req, res, next) {
+        try {
+            const churchId = req.user.churchId;
+            const result = await this.groupService.getPendingApprovals(churchId);
+            (0, responseHandler_1.successResponse)(res, result, 'Pending approvals retrieved successfully');
+        }
+        catch (error) {
+            next(error);
+        }
+    }
+    async approveGroup(req, res, next) {
+        try {
+            const { groupId } = req.params;
+            const churchId = req.user.churchId;
+            const approvedBy = req.user.id;
+            const group = await this.groupService.approveGroup(churchId, groupId, approvedBy);
+            (0, responseHandler_1.successResponse)(res, group, 'Group approved successfully');
+        }
+        catch (error) {
+            next(error);
+        }
+    }
+    async rejectGroup(req, res, next) {
+        try {
+            const { groupId } = req.params;
+            const { reason } = req.body;
+            const churchId = req.user.churchId;
+            const rejectedBy = req.user.id;
+            if (!reason || reason.trim().length === 0) {
+                throw new AppError_1.AppError('Rejection reason is required', 400);
+            }
+            const group = await this.groupService.rejectGroup(churchId, groupId, rejectedBy, reason);
+            (0, responseHandler_1.successResponse)(res, group, 'Group rejected');
+        }
+        catch (error) {
+            next(error);
+        }
+    }
+    async approveGroupMember(req, res, next) {
+        try {
+            const { groupId, memberId } = req.params;
+            const churchId = req.user.churchId;
+            const approvedBy = req.user.id;
+            const member = await this.groupService.approveGroupMember(churchId, groupId, memberId, approvedBy);
+            (0, responseHandler_1.successResponse)(res, member, 'Group member approved successfully');
+        }
+        catch (error) {
+            next(error);
+        }
+    }
+    async rejectGroupMember(req, res, next) {
+        try {
+            const { groupId, memberId } = req.params;
+            const { reason } = req.body;
+            const churchId = req.user.churchId;
+            const rejectedBy = req.user.id;
+            if (!reason || reason.trim().length === 0) {
+                throw new AppError_1.AppError('Rejection reason is required', 400);
+            }
+            const member = await this.groupService.rejectGroupMember(churchId, groupId, memberId, rejectedBy, reason);
+            (0, responseHandler_1.successResponse)(res, member, 'Group member rejected');
+        }
+        catch (error) {
+            next(error);
+        }
     }
 }
 exports.GroupController = GroupController;

@@ -25,5 +25,10 @@ export declare class GroupController {
     getAllGroupTypes: (req: Request, res: Response, next: NextFunction) => Promise<void>;
     updateGroupType: (req: Request, res: Response, next: NextFunction) => Promise<void>;
     deleteGroupType: (req: Request, res: Response, next: NextFunction) => Promise<void>;
+    getPendingApprovals(req: Request, res: Response, next: NextFunction): Promise<void>;
+    approveGroup(req: Request, res: Response, next: NextFunction): Promise<void>;
+    rejectGroup(req: Request, res: Response, next: NextFunction): Promise<void>;
+    approveGroupMember(req: Request, res: Response, next: NextFunction): Promise<void>;
+    rejectGroupMember(req: Request, res: Response, next: NextFunction): Promise<void>;
 }
 //# sourceMappingURL=GroupController.d.ts.map

@@ -10,12 +10,17 @@ import {
     resetPasswordSchema,
     verifyEmailSchema,
     firstLoginResetPasswordSchema,
-    verifyResetOTPSchema
+    verifyResetOTPSchema,
 } from '@validators/auth.validator';
 
 const router = Router();
 const authController = new AuthController();
 
+/**
+ * @route   POST /api/auth/register
+ * @desc    Register a new user
+ * @access  Public
+ */
 router.post(
     '/register',
     strictRateLimiter,
@@ -23,6 +28,11 @@ router.post(
     authController.register
 );
 
+/**
+ * @route   POST /api/auth/login
+ * @desc    Login user and return tokens
+ * @access  Public
+ */
 router.post(
     '/login',
     strictRateLimiter,
@@ -30,24 +40,47 @@ router.post(
     authController.login
 );
 
+/**
+ * @route   POST /api/auth/first-login-reset
+ * @desc    Reset password on first login with temporary password
+ * @access  Public
+ */
 router.post(
-    '/first-login-reset',
+    '/first-login-reset-password',
     strictRateLimiter,
     validateRequest(firstLoginResetPasswordSchema),
     authController.firstLoginResetPassword
 );
 
+/**
+ * @route   POST /api/auth/refresh
+ * @desc    Refresh access token using refresh token
+ * @access  Public
+ */
 router.post(
     '/refresh',
     authController.refreshToken
 );
 
+/**
+ * @route   POST /api/auth/logout
+ * @desc    Logout user (client should delete tokens)
+ * @access  Public
+ */
 router.post(
     '/logout',
     authController.logout
 );
 
-// Password Reset
+// ============================================
+// PASSWORD RESET FLOW
+// ============================================
+
+/**
+ * @route   POST /api/auth/forgot-password
+ * @desc    Send OTP to user's email for password reset
+ * @access  Public
+ */
 router.post(
     '/forgot-password',
     strictRateLimiter,
@@ -55,6 +88,35 @@ router.post(
     authController.forgotPassword
 );
 
+/**
+ * @route   POST /api/auth/verify-reset-otp
+ * @desc    Verify OTP and get reset token
+ * @access  Public
+ */
+router.post(
+    '/verify-reset-otp',
+    strictRateLimiter,
+    validateRequest(verifyResetOTPSchema),
+    authController.verifyResetOTP
+);
+
+/**
+ * @route   POST /api/auth/resend-reset-otp
+ * @desc    Resend OTP for password reset
+ * @access  Public
+ */
+router.post(
+    '/resend-reset-otp',
+    strictRateLimiter,
+    validateRequest(forgotPasswordSchema),
+    authController.resendResetOTP
+);
+
+/**
+ * @route   POST /api/auth/reset-password
+ * @desc    Reset password using reset token
+ * @access  Public
+ */
 router.post(
     '/reset-password',
     strictRateLimiter,
@@ -62,33 +124,41 @@ router.post(
     authController.resetPassword
 );
 
-// Forgot Password - Step 2: Verify OTP
-router.post('/verify-reset-otp', validateRequest(verifyResetOTPSchema), authController.verifyResetOTP);
+// ============================================
+// EMAIL VERIFICATION FLOW
+// ============================================
 
-// Forgot Password - Resend OTP
-router.post('/resend-reset-otp', validateRequest(forgotPasswordSchema), authController.resendResetOTP);
-
-
-// Email Verification
+/**
+ * @route   POST /api/auth/verify-email
+ * @desc    Verify user's email with token
+ * @access  Public
+ */
 router.post(
     '/verify-email',
     validateRequest(verifyEmailSchema),
     authController.verifyEmail
 );
 
+/**
+ * @route   POST /api/auth/resend-verification
+ * @desc    Resend email verification link
+ * @access  Public
+ */
 router.post(
     '/resend-verification',
     strictRateLimiter,
     authController.resendVerification
 );
 
-// router.post(
-//     '/send-verification',
-//     authenticate,
-//     authController.sendVerification
-// );
+// ============================================
+// AUTHENTICATED ROUTES
+// ============================================
 
-// Get current user
+/**
+ * @route   GET /api/auth/me
+ * @desc    Get current authenticated user
+ * @access  Private
+ */
 router.get(
     '/me',
     authenticate,

@@ -1,7 +1,8 @@
-import { Group, GroupType, GroupMember, GroupMeeting, CreateGroupDTO, UpdateGroupDTO, AddGroupMemberDTO, CreateMeetingDTO, UpdateMeetingDTO, ShareMeetingDTO, GroupFilters, PaginatedGroups, GroupStatistics } from '@/dtos/group.types';
+import { Group, GroupType, GroupMember, GroupMeeting, CreateGroupDTO, UpdateGroupDTO, AddGroupMemberDTO, CreateMeetingDTO, UpdateMeetingDTO, ShareMeetingDTO, GroupFilters, PaginatedGroups, GroupStatistics, PendingApprovalsResponse } from '@/dtos/group.types';
 export declare class GroupService {
     private groupRepository;
     private memberRepository;
+    private auditLogRepository;
     constructor();
     createGroup(churchId: string, data: CreateGroupDTO, createdBy?: string): Promise<Group>;
     getAllGroups(filters: GroupFilters): Promise<PaginatedGroups>;
@@ -9,7 +10,6 @@ export declare class GroupService {
     updateGroup(churchId: string, groupId: string, data: UpdateGroupDTO): Promise<Group>;
     deleteGroup(churchId: string, groupId: string): Promise<void>;
     getStatistics(churchId: string): Promise<GroupStatistics>;
-    addMember(churchId: string, groupId: string, data: AddGroupMemberDTO, addedBy?: string): Promise<GroupMember>;
     removeMember(churchId: string, groupId: string, memberId: string): Promise<void>;
     updateMemberRole(churchId: string, groupId: string, memberId: string, role: string): Promise<GroupMember>;
     getGroupMembers(churchId: string, groupId: string): Promise<GroupMember[]>;
@@ -37,5 +37,12 @@ export declare class GroupService {
     getAllGroupTypes(churchId: string): Promise<GroupType[]>;
     updateGroupType(churchId: string, typeId: string, data: Partial<GroupType>): Promise<GroupType>;
     deleteGroupType(churchId: string, typeId: string): Promise<void>;
+    approveGroup(churchId: string, groupId: string, approvedBy: string): Promise<Group>;
+    rejectGroup(churchId: string, groupId: string, rejectedBy: string, reason: string): Promise<Group>;
+    approveGroupMember(churchId: string, groupId: string, memberId: string, approvedBy: string): Promise<GroupMember>;
+    rejectGroupMember(churchId: string, groupId: string, memberId: string, rejectedBy: string, reason: string): Promise<GroupMember>;
+    getPendingApprovals(churchId: string): Promise<PendingApprovalsResponse>;
+    create(churchId: string, data: CreateGroupDTO, createdBy?: string): Promise<Group>;
+    addMember(churchId: string, groupId: string, data: AddGroupMemberDTO, invitedBy?: string): Promise<GroupMember>;
 }
 //# sourceMappingURL=GroupService.d.ts.map

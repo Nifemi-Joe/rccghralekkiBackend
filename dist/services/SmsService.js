@@ -25,61 +25,43 @@ class SmsService {
     // ============================================================================
     async requestSenderId(churchId, data, userId) {
         try {
-            // Validate sender ID format
             if (!/^[A-Za-z0-9]{3,11}$/.test(data.senderId)) {
                 throw new AppError_1.AppError('Sender ID must be 3-11 alphanumeric characters', 400);
             }
-            // Validate useCase is provided and not empty
             if (!data.useCase || data.useCase.trim() === '') {
                 throw new AppError_1.AppError('Use case is required', 400);
             }
             const termii = (0, termii_1.getTermii)();
-            // Get church name for company field
             const churchQuery = await database_1.pool.query('SELECT name FROM churches WHERE id = $1', [churchId]);
             const churchName = churchQuery.rows[0]?.name || 'Church';
             logger_1.default.info(`Requesting sender ID: ${data.senderId} for church: ${churchName}`);
-            logger_1.default.info(`Use case: ${data.useCase}`);
-            // FIXED: Using 'useCase' (camelCase) to match Termii API expectations
             const termiiResult = await termii.requestSenderId({
                 sender_id: data.senderId.toUpperCase(),
-                useCase: data.useCase.trim(), // FIXED: Changed from 'usecase' to 'useCase'
+                useCase: data.useCase.trim(),
                 company: churchName,
             });
-            // Create local sender ID record
-            const senderId = await this.smsRepository.createSenderId(churchId, { senderId: data.senderId.toUpperCase() }, userId);
-            // Update with Termii response
+            logger_1.default.info('Sender Id requested. You will be contacted by your account manager.', {
+                service: "churchplus-api",
+                code: "OK"
+            });
+            const senderIdRecord = await this.smsRepository.createOrUpdateSenderId(churchId, {
+                senderId: data.senderId.toUpperCase(),
+                useCase: data.useCase.trim()
+            }, userId);
             if (termiiResult) {
-                await this.smsRepository.updateSenderId(senderId.id, {
-                    provider_sender_id: termiiResult.id || termiiResult.sender_id,
+                await this.smsRepository.updateSenderId(senderIdRecord.id, {
                     status: termiiResult.status || 'pending',
-                    use_case: data.useCase,
-                    metadata: termiiResult,
+                    use_case: data.useCase.trim(),
+                    description: `Termii Request ID: ${termiiResult.id || 'pending'}`,
                 });
             }
-            logger_1.default.info(`Sender ID requested via Termii: ${data.senderId} for church ${churchId}`);
-            const updatedSenderId = await this.smsRepository.getSenderIdById(senderId.id);
-            if (!updatedSenderId) {
-                throw new AppError_1.AppError('Failed to retrieve created sender ID', 500);
-            }
-            return updatedSenderId;
+            const updated = await this.smsRepository.getSenderIdById(senderIdRecord.id);
+            return updated || senderIdRecord;
         }
         catch (error) {
             logger_1.default.error('Error requesting sender ID:', error);
-            // Parse Termii error if present
-            if (error.message && error.message.includes('Termii API error')) {
-                const match = error.message.match(/Termii API error \d+: (.+)/);
-                if (match) {
-                    try {
-                        const termiiError = JSON.parse(match[1]);
-                        if (termiiError.message && Array.isArray(termiiError.message)) {
-                            const issues = termiiError.message.map((m) => `${m.field}: ${m.issue}`).join(', ');
-                            throw new AppError_1.AppError(`Sender ID request failed: ${issues}`, 400);
-                        }
-                    }
-                    catch (parseError) {
-                        // If parsing fails, use original error
-                    }
-                }
+            if (error.code === '23505') {
+                throw new AppError_1.AppError('This Sender ID has already been requested for this church.', 409);
             }
             throw new AppError_1.AppError(error.message || 'Failed to request sender ID', 400);
         }
@@ -89,33 +71,9 @@ class SmsService {
     }
     async getApprovedSenderIds(churchId) {
         const senderIds = await this.smsRepository.getSenderIds(churchId);
-        // Return all sender IDs, or filter by approved status
         return senderIds.filter(s => s.status === 'approved' ||
             s.status === 'active' ||
-            s.status === 'pending' // Include pending for user visibility
-        );
-    }
-    async syncSenderIdsWithTermii(churchId) {
-        try {
-            const termii = (0, termii_1.getTermii)();
-            const termiiSenderIds = await termii.getSenderIds();
-            const localSenderIds = await this.smsRepository.getSenderIds(churchId);
-            for (const localId of localSenderIds) {
-                const termiiId = termiiSenderIds.data?.find((t) => t.sender_id === localId.sender_id);
-                if (termiiId) {
-                    await this.smsRepository.updateSenderId(localId.id, {
-                        provider_sender_id: termiiId.id,
-                        status: termiiId.status,
-                        metadata: termiiId,
-                    });
-                }
-            }
-            logger_1.default.info(`Synced sender IDs with Termii for church ${churchId}`);
-        }
-        catch (error) {
-            logger_1.default.error('Error syncing sender IDs:', error);
-            throw error;
-        }
+            s.status === 'pending');
     }
     async setDefaultSenderId(churchId, senderIdId) {
         return this.smsRepository.setDefaultSenderId(churchId, senderIdId);
@@ -127,9 +85,12 @@ class SmsService {
         }
     }
     // ============================================================================
-    // BALANCE
+    // BALANCE - Enhanced with Termii checking
     // ============================================================================
     async getBalance(churchId) {
+        return this.walletService.getComprehensiveBalance(churchId, 'sms');
+    }
+    async getSimpleBalance(churchId) {
         try {
             const termii = (0, termii_1.getTermii)();
             const localBalance = await this.walletService.getBalance(churchId, 'sms');
@@ -151,33 +112,52 @@ class SmsService {
         }
     }
     // ============================================================================
-    // COMPOSE & SEND
+    // COMPOSE & SEND - Fixed with comprehensive balance checking
     // ============================================================================
     async composeSms(churchId, data, userId) {
         try {
             logger_1.default.info(`Composing SMS for church ${churchId}`, { data });
+            // Get recipients
             const recipients = await this.getRecipients(churchId, data);
             if (recipients.length === 0) {
                 throw new AppError_1.AppError('No valid recipients found', 400);
             }
+            // Calculate units needed
             const messageLength = data.message.length;
             const unitsPerMessage = Math.ceil(messageLength / 160);
-            const totalUnits = recipients.length * unitsPerMessage;
-            logger_1.default.info(`Calculated ${totalUnits} units needed for ${recipients.length} recipients`);
+            const totalUnitsRequired = recipients.length * unitsPerMessage;
+            logger_1.default.info(`SMS calculation: ${recipients.length} recipients × ${unitsPerMessage} units = ${totalUnitsRequired} total units needed`);
+            // Only check balance if sending now (not for drafts or schedules)
+            let useTermiiDirectly = false;
             if (data.sendOption === 'now') {
-                const hasSufficientBalance = await this.walletService.checkSufficientBalance(churchId, 'sms', totalUnits);
-                if (!hasSufficientBalance) {
-                    const balance = await this.walletService.getBalance(churchId, 'sms');
-                    throw new AppError_1.AppError(`Insufficient SMS units. Required: ${totalUnits}, Available: ${balance}`, 400);
+                // Get comprehensive balance from all sources
+                const balanceCheck = await this.walletService.checkSufficientBalance(churchId, 'sms', totalUnitsRequired);
+                logger_1.default.info('Balance check result:', {
+                    sufficient: balanceCheck.sufficient,
+                    local: balanceCheck.balanceInfo.local,
+                    termiiUnits: balanceCheck.balanceInfo.termii?.smsUnitsAvailable || 0,
+                    termiiBalance: balanceCheck.balanceInfo.termii?.balance || 0,
+                    total: balanceCheck.balanceInfo.total,
+                    useTermii: balanceCheck.useTermii,
+                });
+                if (!balanceCheck.sufficient) {
+                    const errorMessage = `Insufficient SMS balance. Required: ${totalUnitsRequired} units. ` +
+                        `Local balance: ${balanceCheck.balanceInfo.local} units. ` +
+                        `Termii balance: ₦${balanceCheck.balanceInfo.termii?.balance || 0} ` +
+                        `(~${balanceCheck.balanceInfo.termii?.smsUnitsAvailable || 0} SMS @ ₦${balanceCheck.balanceInfo.termii?.pricePerSms || 4}/SMS). ` +
+                        `Please top up your account.`;
+                    throw new AppError_1.AppError(errorMessage, 400);
                 }
+                useTermiiDirectly = balanceCheck.useTermii;
             }
+            // Create campaign
             const campaign = await this.smsRepository.createCampaign(churchId, data, userId);
             await this.smsRepository.updateCampaign(churchId, campaign.id, {
                 total_recipients: recipients.length,
             });
+            // Process if sending now
             if (data.sendOption === 'now') {
-                this.processCampaign(churchId, campaign.id, recipients, data.message, data.senderId, userId)
-                    .catch(error => {
+                this.processCampaign(churchId, campaign.id, recipients, data.message, data.senderId, userId, useTermiiDirectly).catch(error => {
                     logger_1.default.error(`Error processing campaign ${campaign.id}:`, error);
                 });
             }
@@ -197,9 +177,12 @@ class SmsService {
         try {
             const termii = (0, termii_1.getTermii)();
             const units = Math.ceil(data.message.length / 160);
-            const hasSufficientBalance = await this.walletService.checkSufficientBalance(churchId, 'sms', units);
-            if (!hasSufficientBalance) {
-                throw new AppError_1.AppError('Insufficient SMS units', 400);
+            // Check comprehensive balance
+            const balanceCheck = await this.walletService.checkSufficientBalance(churchId, 'sms', units);
+            if (!balanceCheck.sufficient) {
+                throw new AppError_1.AppError(`Insufficient SMS balance. Required: ${units} units. ` +
+                    `Available: ${balanceCheck.balanceInfo.total} units (Local: ${balanceCheck.balanceInfo.local}, ` +
+                    `Termii: ~${balanceCheck.balanceInfo.termii?.smsUnitsAvailable || 0})`, 400);
             }
             let senderId = data.senderId;
             if (!senderId) {
@@ -207,9 +190,10 @@ class SmsService {
                 senderId = defaultSender?.sender_id;
             }
             if (!senderId) {
-                throw new AppError_1.AppError('No sender ID available', 400);
+                senderId = process.env.TERMII_SENDER_ID || 'ChurchMS';
             }
             const formattedPhone = this.formatPhoneNumber(data.phoneNumber);
+            // Create message record
             const message = await this.smsRepository.createMessage(churchId, {
                 phoneNumber: formattedPhone,
                 recipientName: data.recipientName,
@@ -218,31 +202,29 @@ class SmsService {
                 units,
             }, userId);
             try {
+                // Send via Termii
                 const result = await termii.sendSMS({
                     to: formattedPhone,
                     from: senderId,
                     sms: data.message,
                 });
-                await this.smsRepository.updateMessageWithProvider(message.id, {
-                    provider_message_id: result.message_id,
-                    provider_status: result.message,
-                    delivery_status: 'sent',
-                });
-                await this.walletService.debitBalance(churchId, 'sms', units, {
-                    reference: message.id,
-                    description: `SMS sent to ${formattedPhone}`,
-                }, userId);
+                // Update message with provider info
+                await this.smsRepository.updateMessageStatus(message.id, 'sent', result.message_id);
+                // Debit from local wallet only if we have local balance
+                if (!balanceCheck.useTermii && balanceCheck.balanceInfo.local >= units) {
+                    await this.walletService.debitBalance(churchId, 'sms', units, {
+                        reference: message.id,
+                        description: `SMS sent to ${formattedPhone}`,
+                    }, userId);
+                }
                 logger_1.default.info(`SMS sent successfully: ${message.id}`);
             }
             catch (error) {
                 logger_1.default.error('Error sending SMS via Termii:', error);
-                await this.smsRepository.updateMessageWithProvider(message.id, {
-                    delivery_status: 'failed',
-                    metadata: { error: error.message },
-                });
-                throw new AppError_1.AppError('Failed to send SMS', 500);
+                await this.smsRepository.updateMessageStatus(message.id, 'failed', undefined, error.message);
+                throw new AppError_1.AppError('Failed to send SMS: ' + error.message, 500);
             }
-            const updatedMessage = await this.smsRepository.getMessageByProviderId(message.id);
+            const updatedMessage = await this.smsRepository.getMessageById(message.id);
             return updatedMessage || message;
         }
         catch (error) {
@@ -251,43 +233,97 @@ class SmsService {
         }
     }
     // ============================================================================
-    // SEND OTP VIA SMS
+    // CAMPAIGN PROCESSING
     // ============================================================================
-    async sendOtp(to, otp) {
-        const message = `Your verification code is: ${otp}. This code expires in 10 minutes. Do not share this code with anyone.`;
+    async processCampaign(churchId, campaignId, recipients, message, senderId, userId, useTermiiDirectly = false) {
         try {
             const termii = (0, termii_1.getTermii)();
-            const formattedPhone = this.formatPhoneNumber(to);
-            await termii.sendSMS({
-                to: formattedPhone,
-                from: process.env.SMS_SENDER_ID || 'ChurchMgmt',
-                sms: message,
+            logger_1.default.info(`Processing campaign ${campaignId} with ${recipients.length} recipients (useTermii: ${useTermiiDirectly})`);
+            await this.smsRepository.updateCampaign(churchId, campaignId, {
+                status: 'sending',
             });
-            logger_1.default.info(`OTP SMS sent to ${formattedPhone}`);
+            if (!senderId) {
+                const defaultSender = await this.smsRepository.getDefaultSenderId(churchId);
+                senderId = defaultSender?.sender_id;
+            }
+            if (!senderId) {
+                senderId = process.env.TERMII_SENDER_ID || 'ChurchMS';
+            }
+            const unitsPerMessage = Math.ceil(message.length / 160);
+            // Create message records
+            const messages = await this.smsRepository.createMessages(churchId, recipients.map(r => ({
+                campaignId,
+                memberId: r.memberId,
+                phoneNumber: r.phoneNumber,
+                recipientName: r.name,
+                message: this.personalize(message, r.name),
+                senderId,
+                units: unitsPerMessage,
+            })), userId);
+            let sentCount = 0;
+            let failedCount = 0;
+            let totalCost = 0;
+            // Process in batches
+            const batchSize = 100;
+            for (let i = 0; i < recipients.length; i += batchSize) {
+                const batch = recipients.slice(i, i + batchSize);
+                const batchMessages = messages.slice(i, i + batchSize);
+                try {
+                    const result = await termii.sendBulkSMS({
+                        to: batch.map(r => r.phoneNumber),
+                        from: senderId,
+                        sms: message,
+                    });
+                    logger_1.default.info(`Batch ${Math.floor(i / batchSize) + 1} sent successfully`);
+                    for (const msg of batchMessages) {
+                        await this.smsRepository.updateMessageStatus(msg.id, 'sent', result.message_id);
+                        sentCount++;
+                        totalCost += unitsPerMessage;
+                    }
+                }
+                catch (error) {
+                    logger_1.default.error(`Error sending batch ${Math.floor(i / batchSize) + 1}:`, error);
+                    for (const msg of batchMessages) {
+                        await this.smsRepository.updateMessageStatus(msg.id, 'failed', undefined, error.message);
+                        failedCount++;
+                    }
+                }
+                // Rate limiting delay
+                if (i + batchSize < recipients.length) {
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                }
+            }
+            // Debit from local wallet if not using Termii directly and we have local balance
+            if (!useTermiiDirectly && totalCost > 0) {
+                try {
+                    const localBalance = await this.walletService.getBalance(churchId, 'sms');
+                    if (localBalance >= totalCost) {
+                        await this.walletService.debitBalance(churchId, 'sms', totalCost, {
+                            reference: campaignId,
+                            description: `SMS campaign: ${sentCount} messages sent`,
+                        }, userId);
+                    }
+                }
+                catch (debitError) {
+                    logger_1.default.warn('Could not debit local balance (using Termii balance):', debitError);
+                }
+            }
+            // Update campaign status
+            await this.smsRepository.updateCampaign(churchId, campaignId, {
+                status: failedCount === recipients.length ? 'failed' : 'sent',
+                successful_count: sentCount,
+                failed_count: failedCount,
+                units_used: totalCost,
+                sent_at: new Date(),
+            });
+            logger_1.default.info(`Campaign ${campaignId} completed: ${sentCount} sent, ${failedCount} failed`);
         }
         catch (error) {
-            logger_1.default.warn(`Failed to send OTP SMS via Termii to ${to}. Error: ${error.message}`);
-            logger_1.default.info(`[SMS FALLBACK to ${to}]: ${message}`);
-        }
-    }
-    // ============================================================================
-    // SEND PROFILE UPDATE LINK VIA SMS
-    // ============================================================================
-    async sendProfileUpdateLink(to, data) {
-        const message = `${data.churchName}: Please update your profile using this link: ${data.updateLink}`;
-        try {
-            const termii = (0, termii_1.getTermii)();
-            const formattedPhone = this.formatPhoneNumber(to);
-            await termii.sendSMS({
-                to: formattedPhone,
-                from: process.env.SMS_SENDER_ID || 'ChurchMgmt',
-                sms: message,
+            logger_1.default.error('Error processing campaign:', error);
+            await this.smsRepository.updateCampaign(churchId, campaignId, {
+                status: 'failed',
             });
-            logger_1.default.info(`Profile update link SMS sent to ${formattedPhone}`);
-        }
-        catch (error) {
-            logger_1.default.warn(`Failed to send profile update link SMS via Termii to ${to}. Error: ${error.message}`);
-            logger_1.default.info(`[SMS FALLBACK to ${to}]: ${message}`);
+            throw error;
         }
     }
     // ============================================================================
@@ -298,7 +334,6 @@ class SmsService {
             switch (data.destinationType) {
                 case 'contacts':
                 case 'contact_lists':
-                    // Handle contact lists
                     return await this.getContactListRecipients(churchId, data.contactListIds || [], data.selectAllContacts);
                 case 'all_contacts':
                     return await this.getAllContacts(churchId);
@@ -324,7 +359,6 @@ class SmsService {
         const seenPhones = new Set();
         try {
             let listsToProcess = contactListIds;
-            // If selectAll is true, get all contact lists for the church
             if (selectAll) {
                 const allLists = await this.smsRepository.getContactLists(churchId);
                 listsToProcess = allLists.map(list => list.id);
@@ -434,92 +468,40 @@ class SmsService {
         }));
     }
     // ============================================================================
-    // CAMPAIGN PROCESSING
+    // OTP & PROFILE UPDATE
     // ============================================================================
-    async processCampaign(churchId, campaignId, recipients, message, senderId, userId) {
+    async sendOtp(to, otp) {
+        const message = `Your verification code is: ${otp}. This code expires in 10 minutes. Do not share this code with anyone.`;
         try {
             const termii = (0, termii_1.getTermii)();
-            logger_1.default.info(`Processing campaign ${campaignId} with ${recipients.length} recipients`);
-            await this.smsRepository.updateCampaign(churchId, campaignId, {
-                status: 'sending',
+            const formattedPhone = this.formatPhoneNumber(to);
+            await termii.sendSMS({
+                to: formattedPhone,
+                from: process.env.SMS_SENDER_ID || 'ChurchMgmt',
+                sms: message,
             });
-            if (!senderId) {
-                const defaultSender = await this.smsRepository.getDefaultSenderId(churchId);
-                senderId = defaultSender?.sender_id;
-            }
-            if (!senderId) {
-                throw new AppError_1.AppError('No sender ID available', 400);
-            }
-            const unitsPerMessage = Math.ceil(message.length / 160);
-            const messages = await this.smsRepository.createMessages(churchId, recipients.map(r => ({
-                campaignId,
-                memberId: r.memberId,
-                phoneNumber: r.phoneNumber,
-                recipientName: r.name,
-                message: this.personalize(message, r.name),
-                senderId,
-                units: unitsPerMessage,
-            })), userId);
-            let sentCount = 0;
-            let failedCount = 0;
-            let totalCost = 0;
-            const batchSize = 100;
-            for (let i = 0; i < recipients.length; i += batchSize) {
-                const batch = recipients.slice(i, i + batchSize);
-                const batchMessages = messages.slice(i, i + batchSize);
-                try {
-                    const result = await termii.sendBulkSMS({
-                        to: batch.map(r => r.phoneNumber),
-                        from: senderId,
-                        sms: message,
-                    });
-                    logger_1.default.info(`Batch ${Math.floor(i / batchSize) + 1} sent successfully`);
-                    for (const msg of batchMessages) {
-                        await this.smsRepository.updateMessageWithProvider(msg.id, {
-                            provider_message_id: result.message_id,
-                            provider_status: result.message,
-                            delivery_status: 'sent',
-                        });
-                        sentCount++;
-                        totalCost += unitsPerMessage;
-                    }
-                }
-                catch (error) {
-                    logger_1.default.error(`Error sending batch ${Math.floor(i / batchSize) + 1}:`, error);
-                    for (const msg of batchMessages) {
-                        await this.smsRepository.updateMessageWithProvider(msg.id, {
-                            delivery_status: 'failed',
-                            metadata: { error: error.message },
-                        });
-                        failedCount++;
-                    }
-                }
-                if (i + batchSize < recipients.length) {
-                    await new Promise(resolve => setTimeout(resolve, 1000));
-                }
-            }
-            if (totalCost > 0) {
-                await this.walletService.debitBalance(churchId, 'sms', totalCost, {
-                    reference: campaignId,
-                    description: `SMS campaign: ${sentCount} messages sent`,
-                }, userId);
-            }
-            await this.smsRepository.updateCampaign(churchId, campaignId, {
-                status: failedCount === recipients.length ? 'failed' : 'sent',
-                successful_count: sentCount,
-                failed_count: failedCount,
-                units_used: totalCost,
-                sent_at: new Date(),
-            });
-            logger_1.default.info(`Campaign ${campaignId} completed: ${sentCount} sent, ${failedCount} failed`);
+            logger_1.default.info(`OTP SMS sent to ${formattedPhone}`);
         }
         catch (error) {
-            logger_1.default.error('Error processing campaign:', error);
-            await this.smsRepository.updateCampaign(churchId, campaignId, {
-                status: 'failed',
-                message: error instanceof Error ? error.message : 'Unknown error',
+            logger_1.default.warn(`Failed to send OTP SMS via Termii to ${to}. Error: ${error.message}`);
+            logger_1.default.info(`[SMS FALLBACK to ${to}]: ${message}`);
+        }
+    }
+    async sendProfileUpdateLink(to, data) {
+        const message = `${data.churchName}: Please update your profile using this link: ${data.updateLink}`;
+        try {
+            const termii = (0, termii_1.getTermii)();
+            const formattedPhone = this.formatPhoneNumber(to);
+            await termii.sendSMS({
+                to: formattedPhone,
+                from: process.env.SMS_SENDER_ID || 'ChurchMgmt',
+                sms: message,
             });
-            throw error;
+            logger_1.default.info(`Profile update link SMS sent to ${formattedPhone}`);
+        }
+        catch (error) {
+            logger_1.default.warn(`Failed to send profile update link SMS via Termii to ${to}. Error: ${error.message}`);
+            logger_1.default.info(`[SMS FALLBACK to ${to}]: ${message}`);
         }
     }
     // ============================================================================
@@ -563,26 +545,6 @@ class SmsService {
     async getMessagesByCampaign(campaignId) {
         return this.smsRepository.getMessagesByCampaign(campaignId);
     }
-    async syncMessageStatus(messageId) {
-        try {
-            const termii = (0, termii_1.getTermii)();
-            const message = await this.smsRepository.getMessageByProviderId(messageId);
-            if (!message || !message.provider_message_id) {
-                throw new AppError_1.AppError('Message not found or no provider ID', 404);
-            }
-            const status = await termii.getMessageStatus(message.provider_message_id);
-            if (status) {
-                await this.smsRepository.updateMessageWithProvider(message.id, {
-                    provider_status: status.status,
-                    delivery_status: this.mapTermiiStatus(status.status),
-                });
-            }
-        }
-        catch (error) {
-            logger_1.default.error('Error syncing message status:', error);
-            throw error;
-        }
-    }
     // ============================================================================
     // REPLIES
     // ============================================================================
@@ -594,27 +556,6 @@ class SmsService {
     }
     async markAllRepliesAsRead(churchId) {
         return this.smsRepository.markAllRepliesAsRead(churchId);
-    }
-    async replyToMessage(churchId, replyId, message, senderId, userId) {
-        try {
-            const replies = await this.getReplies(churchId);
-            const originalReply = replies.data.find(r => r.id === replyId);
-            if (!originalReply) {
-                throw new AppError_1.AppError('Reply not found', 404);
-            }
-            const sentMessage = await this.sendSingleSms(churchId, {
-                phoneNumber: originalReply.phone_number,
-                message,
-                senderId,
-                recipientName: originalReply.sender_name,
-            }, userId);
-            await this.markReplyAsRead(churchId, replyId);
-            return sentMessage;
-        }
-        catch (error) {
-            logger_1.default.error('Error replying to message:', error);
-            throw error;
-        }
     }
     // ============================================================================
     // STATISTICS
@@ -629,73 +570,6 @@ class SmsService {
         }
         return report;
     }
-    async getSMSHistory(params) {
-        try {
-            const termii = (0, termii_1.getTermii)();
-            return await termii.getSMSHistory(params);
-        }
-        catch (error) {
-            logger_1.default.error('Error getting SMS history:', error);
-            throw error;
-        }
-    }
-    // ============================================================================
-    // SCHEDULED CAMPAIGNS
-    // ============================================================================
-    async processScheduledCampaigns() {
-        try {
-            const campaigns = await this.smsRepository.getScheduledForProcessing();
-            logger_1.default.info(`Processing ${campaigns.length} scheduled campaigns`);
-            for (const campaign of campaigns) {
-                try {
-                    const recipients = await this.getRecipients(campaign.church_id, campaign);
-                    await this.processCampaign(campaign.church_id, campaign.id, recipients, campaign.message, campaign.sender_id || undefined);
-                }
-                catch (error) {
-                    logger_1.default.error(`Error processing scheduled campaign ${campaign.id}:`, error);
-                }
-            }
-        }
-        catch (error) {
-            logger_1.default.error('Error processing scheduled campaigns:', error);
-            throw error;
-        }
-    }
-    // ============================================================================
-    // HELPER METHODS
-    // ============================================================================
-    formatPhoneNumber(phone, countryCode = '234') {
-        let cleaned = phone.replace(/\D/g, '');
-        cleaned = cleaned.replace(/^0+/, '');
-        if (!cleaned.startsWith(countryCode)) {
-            cleaned = countryCode + cleaned;
-        }
-        return cleaned;
-    }
-    isValidPhoneNumber(phone) {
-        const cleaned = phone.replace(/\D/g, '');
-        return cleaned.length >= 10 && cleaned.length <= 15;
-    }
-    personalize(message, name) {
-        if (!name)
-            return message;
-        return message
-            .replace(/\{\{name\}\}/gi, name)
-            .replace(/\{name\}/gi, name)
-            .replace(/#name/gi, name);
-    }
-    mapTermiiStatus(termiiStatus) {
-        const statusMap = {
-            'Sent': 'sent',
-            'Delivered': 'delivered',
-            'Failed': 'failed',
-            'Rejected': 'rejected',
-            'DND-Active': 'rejected',
-            'Submitted': 'pending',
-        };
-        return statusMap[termiiStatus] || 'pending';
-    }
-    // Add these methods to src/services/SmsService.ts
     // ============================================================================
     // CONTACT LISTS
     // ============================================================================
@@ -736,6 +610,29 @@ class SmsService {
         if (!removed) {
             throw new AppError_1.AppError('Contact not found in list', 404);
         }
+    }
+    // ============================================================================
+    // HELPER METHODS
+    // ============================================================================
+    formatPhoneNumber(phone, countryCode = '234') {
+        let cleaned = phone.replace(/\D/g, '');
+        cleaned = cleaned.replace(/^0+/, '');
+        if (!cleaned.startsWith(countryCode)) {
+            cleaned = countryCode + cleaned;
+        }
+        return cleaned;
+    }
+    isValidPhoneNumber(phone) {
+        const cleaned = phone.replace(/\D/g, '');
+        return cleaned.length >= 10 && cleaned.length <= 15;
+    }
+    personalize(message, name) {
+        if (!name)
+            return message;
+        return message
+            .replace(/\{\{name\}\}/gi, name)
+            .replace(/\{name\}/gi, name)
+            .replace(/#name/gi, name);
     }
 }
 exports.SmsService = SmsService;
