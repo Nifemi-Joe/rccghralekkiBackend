@@ -120,6 +120,21 @@ export declare class EmailService {
         temporaryPassword: string;
         role: string;
     }): Promise<boolean>;
+    sendGroupApprovalNotification(email: string, data: {
+        firstName: string;
+        groupName: string;
+        churchName: string;
+        actionUrl?: string;
+    }): Promise<boolean>;
+    /**
+     * Send Group Rejection Notification
+     */
+    sendGroupRejectionNotification(email: string, data: {
+        firstName: string;
+        groupName: string;
+        reason: string;
+        churchName: string;
+    }): Promise<boolean>;
     /**
      * Helper: Get Role Display Name
      */

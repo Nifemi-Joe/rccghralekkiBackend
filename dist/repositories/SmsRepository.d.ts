@@ -1,5 +1,16 @@
 import { SmsSenderId, SmsBalance, SmsTransaction, SmsCampaign, SmsMessage, SmsReply, SmsContactList, SmsContactListItem, CreateSenderIdDTO, ComposeSmsDTO, CampaignFilters, SmsFilters, PaginatedCampaigns, PaginatedMessages, SmsStats, CampaignReport } from '@/dtos/sms.types';
 export declare class SmsRepository {
+    /**
+     * Find sender ID by church and sender name
+     */
+    findSenderIdByChurchAndName(churchId: string, senderId: string): Promise<SmsSenderId | null>;
+    /**
+     * UPSERT - Creates or updates sender ID atomically (Prevents duplicate key error)
+     */
+    createOrUpdateSenderId(churchId: string, data: CreateSenderIdDTO, createdBy?: string): Promise<SmsSenderId>;
+    /**
+     * Legacy method - now delegates to UPSERT (kept for backward compatibility)
+     */
     createSenderId(churchId: string, data: CreateSenderIdDTO, createdBy?: string): Promise<SmsSenderId>;
     getSenderIds(churchId: string): Promise<SmsSenderId[]>;
     getSenderIdById(senderIdId: string): Promise<SmsSenderId | null>;
@@ -9,6 +20,11 @@ export declare class SmsRepository {
         provider_sender_id?: string;
         status?: string;
         use_case?: string;
+        description?: string;
+        sample_message?: string;
+        rejection_reason?: string;
+        approved_at?: Date;
+        rejected_at?: Date;
         metadata?: any;
     }): Promise<SmsSenderId | null>;
     updateMessageWithProvider(messageId: string, data: {
@@ -19,7 +35,8 @@ export declare class SmsRepository {
         cost?: number;
         metadata?: any;
     }): Promise<SmsMessage | null>;
-    getMessageByProviderId(providerId: string): Promise<SmsMessage | null>;
+    getMessageById(messageId: string): Promise<SmsMessage | null>;
+    getMessageByProviderId(messageIdOrProviderId: string): Promise<SmsMessage | null>;
     setDefaultSenderId(churchId: string, senderIdId: string): Promise<void>;
     deleteSenderId(churchId: string, senderIdId: string): Promise<boolean>;
     getBalance(churchId: string): Promise<SmsBalance>;

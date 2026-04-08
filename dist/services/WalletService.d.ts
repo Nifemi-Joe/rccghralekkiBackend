@@ -1,27 +1,39 @@
 import { Wallet, WalletTransaction, MessagingPricing, UnitPackage } from '@repositories/WalletRepository';
-export interface PurchaseUnitsDTO {
-    packageId?: string;
-    channel: 'sms' | 'email' | 'whatsapp' | 'voice';
-    units?: number;
-    paymentMethod: string;
-    paymentReference: string;
-    amount: number;
+export interface BalanceInfo {
+    local: number;
+    termii: {
+        balance: number;
+        currency: string;
+        smsUnitsAvailable: number;
+        pricePerSms: number;
+    } | null;
+    total: number;
+    canSend: boolean;
+    source: 'local' | 'termii' | 'combined' | 'none';
 }
 export declare class WalletService {
     private walletRepository;
     constructor();
-    getWallet(churchId: string): Promise<Wallet>;
-    getBalance(churchId: string, channel: 'sms' | 'email' | 'whatsapp' | 'voice'): Promise<number>;
-    getAllBalances(churchId: string): Promise<{
-        sms: number;
-        email: number;
-        whatsapp: number;
-        voice: number;
-        termii?: {
-            balance: number;
-            currency: string;
-        };
+    /**
+     * Get comprehensive balance info from all sources
+     */
+    getComprehensiveBalance(churchId: string, channel?: 'sms' | 'email' | 'whatsapp' | 'voice'): Promise<BalanceInfo>;
+    /**
+     * Check if there's sufficient balance from any source
+     */
+    checkSufficientBalance(churchId: string, channel: 'sms' | 'email' | 'whatsapp' | 'voice', unitsRequired: number): Promise<{
+        sufficient: boolean;
+        balanceInfo: BalanceInfo;
+        useTermii: boolean;
     }>;
+    /**
+     * Get balance for a specific channel (backward compatible)
+     */
+    getBalance(churchId: string, channel: 'sms' | 'email' | 'whatsapp' | 'voice'): Promise<number>;
+    /**
+     * Get full wallet info
+     */
+    getWallet(churchId: string): Promise<Wallet>;
     creditBalance(churchId: string, channel: 'sms' | 'email' | 'whatsapp' | 'voice' | 'all', units: number, details: {
         amount?: number;
         reference?: string;
@@ -29,14 +41,13 @@ export declare class WalletService {
         paymentMethod?: string;
         paymentReference?: string;
         type?: 'credit' | 'bonus';
-        status?: string;
     }, createdBy?: string): Promise<Wallet>;
     debitBalance(churchId: string, channel: 'sms' | 'email' | 'whatsapp' | 'voice', units: number, details: {
         reference?: string;
         description?: string;
     }, createdBy?: string): Promise<Wallet>;
-    checkSufficientBalance(churchId: string, channel: 'sms' | 'email' | 'whatsapp' | 'voice', requiredUnits: number): Promise<boolean>;
-    getTransactions(churchId: string, filters?: {
+    refundTransaction(transactionId: string, refundAmount: number, reason: string, createdBy?: string): Promise<WalletTransaction>;
+    getTransactions(churchId: string, filters: {
         channel?: string;
         type?: string;
         status?: string;
@@ -50,14 +61,13 @@ export declare class WalletService {
         total: number;
     }>;
     getAnalytics(churchId: string, startDate: string, endDate: string): Promise<any>;
-    refundTransaction(transactionId: string, refundAmount: number, reason: string, createdBy?: string): Promise<WalletTransaction>;
     getAllPricing(): Promise<MessagingPricing[]>;
-    getPricing(channel: string, countryCode?: string): Promise<MessagingPricing>;
-    updatePricing(pricingId: string, data: {
+    getPricing(channel: string, countryCode?: string): Promise<MessagingPricing | null>;
+    updatePricing(id: string, data: {
         costPerUnit?: number;
         sellPrice?: number;
         isActive?: boolean;
-    }): Promise<MessagingPricing>;
+    }): Promise<MessagingPricing | null>;
     createPricing(data: {
         channel: string;
         countryCode: string;
@@ -67,7 +77,7 @@ export declare class WalletService {
         currency?: string;
     }): Promise<MessagingPricing>;
     getAllPackages(channel?: string): Promise<UnitPackage[]>;
-    getPackageById(id: string): Promise<UnitPackage>;
+    getPackageById(id: string): Promise<UnitPackage | null>;
     createPackage(data: {
         name: string;
         channel: string;
@@ -79,29 +89,15 @@ export declare class WalletService {
         sortOrder?: number;
         description?: string;
     }): Promise<UnitPackage>;
-    updatePackage(id: string, data: Partial<UnitPackage>): Promise<UnitPackage>;
-    deletePackage(id: string): Promise<void>;
-    purchaseUnits(churchId: string, data: PurchaseUnitsDTO, userId?: string): Promise<Wallet>;
-    deductUnits(churchId: string, channel: 'sms' | 'email' | 'whatsapp' | 'voice', units: number, reference: string, description: string, userId?: string): Promise<Wallet>;
-    exportTransactions(churchId: string, filters: {
-        channel?: string;
-        type?: string;
-        status?: string;
-        startDate?: string;
-        endDate?: string;
-    }): Promise<string>;
-    getUsageAnalytics(churchId: string, startDate: string, endDate: string): Promise<{
-        totalRevenue: number;
-        totalRefunds: number;
-        totalPurchases: number;
-        totalUnitsDistributed: number;
-        balances: {
-            sms: number;
-            email: number;
-            whatsapp: number;
-            voice: number;
-        };
-        byChannel: any;
+    updatePackage(id: string, data: Partial<UnitPackage>): Promise<UnitPackage | null>;
+    deletePackage(id: string): Promise<boolean>;
+    purchaseUnits(churchId: string, packageId: string, paymentDetails: {
+        paymentMethod: string;
+        paymentReference: string;
+        amount: number;
+    }, createdBy?: string): Promise<{
+        wallet: Wallet;
+        transaction: WalletTransaction;
     }>;
 }
 //# sourceMappingURL=WalletService.d.ts.map

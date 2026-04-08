@@ -9,10 +9,13 @@ const GroupRepository_1 = require("@repositories/GroupRepository");
 const MemberRepository_1 = require("@repositories/MemberRepository");
 const AppError_1 = require("@utils/AppError");
 const logger_1 = __importDefault(require("@config/logger"));
+const AuditLogRepository_1 = require("@repositories/AuditLogRepository");
+const NotificationService_1 = require("@services/NotificationService");
 class GroupService {
     constructor() {
         this.groupRepository = new GroupRepository_1.GroupRepository();
         this.memberRepository = new MemberRepository_1.MemberRepository();
+        this.auditLogRepository = new AuditLogRepository_1.AuditLogRepository();
     }
     // ============================================================================
     // GROUPS
@@ -103,28 +106,6 @@ class GroupService {
     // ============================================================================
     // GROUP MEMBERS
     // ============================================================================
-    async addMember(churchId, groupId, data, addedBy) {
-        try {
-            // Verify group exists
-            const group = await this.getGroupById(churchId, groupId);
-            // Check max members
-            if (group.max_members && group.member_count >= group.max_members) {
-                throw new AppError_1.AppError('Group has reached maximum member capacity', 400);
-            }
-            // Verify member exists
-            const member = await this.memberRepository.findById(data.memberId, churchId);
-            if (!member) {
-                throw new AppError_1.AppError('Member not found', 404);
-            }
-            const membership = await this.groupRepository.addMember(groupId, data, addedBy);
-            logger_1.default.info(`Member ${data.memberId} added to group ${groupId}`);
-            return membership;
-        }
-        catch (error) {
-            logger_1.default.error('Error adding member to group:', error);
-            throw error;
-        }
-    }
     async removeMember(churchId, groupId, memberId) {
         try {
             await this.getGroupById(churchId, groupId);
@@ -421,6 +402,345 @@ class GroupService {
             logger_1.default.error('Error deleting group type:', error);
             throw error;
         }
+    }
+    // ============================================================================
+    // GROUP APPROVAL METHODS
+    // ============================================================================
+    async approveGroup(churchId, groupId, approvedBy) {
+        const group = await this.groupRepository.findById(churchId, groupId);
+        if (!group) {
+            throw new AppError_1.AppError('Group not found', 404);
+        }
+        if (group.approval_status !== 'pending') {
+            throw new AppError_1.AppError(`Group is already ${group.approval_status}`, 400);
+        }
+        const approvedGroup = await this.groupRepository.approveGroup(churchId, groupId, approvedBy);
+        if (!approvedGroup) {
+            throw new AppError_1.AppError('Failed to approve group', 500);
+        }
+        // Create audit log
+        await this.auditLogRepository.create({
+            churchId,
+            userId: approvedBy,
+            action: 'approve',
+            actionType: 'member',
+            description: `Approved group/department: ${group.name}`,
+            entityType: 'group',
+            entityId: groupId,
+            entityName: group.name,
+            oldValues: { approval_status: 'pending' },
+            newValues: { approval_status: 'approved' },
+            status: 'success',
+        });
+        // Notify group creator
+        if (group.created_by) {
+            try {
+                await NotificationService_1.notificationService.sendNotification({
+                    userId: group.created_by,
+                    channels: ['in_app', 'email'],
+                    data: {
+                        churchId,
+                        type: 'general',
+                        title: '✅ Group Approved',
+                        message: `Your group "${group.name}" has been approved and is now active.`,
+                        actionUrl: `/groups/${groupId}`,
+                        metadata: {
+                            groupId,
+                            groupName: group.name,
+                            approvedBy,
+                        },
+                    },
+                });
+            }
+            catch (error) {
+                logger_1.default.error('Failed to send group approval notification:', error);
+            }
+        }
+        logger_1.default.info(`Group approved: ${groupId} by ${approvedBy}`);
+        return approvedGroup;
+    }
+    async rejectGroup(churchId, groupId, rejectedBy, reason) {
+        const group = await this.groupRepository.findById(churchId, groupId);
+        if (!group) {
+            throw new AppError_1.AppError('Group not found', 404);
+        }
+        if (group.approval_status !== 'pending') {
+            throw new AppError_1.AppError(`Group is already ${group.approval_status}`, 400);
+        }
+        const rejectedGroup = await this.groupRepository.rejectGroup(churchId, groupId, rejectedBy, reason);
+        if (!rejectedGroup) {
+            throw new AppError_1.AppError('Failed to reject group', 500);
+        }
+        // Create audit log
+        await this.auditLogRepository.create({
+            churchId,
+            userId: rejectedBy,
+            action: 'reject',
+            actionType: 'member',
+            description: `Rejected group/department: ${group.name}. Reason: ${reason}`,
+            entityType: 'group',
+            entityId: groupId,
+            entityName: group.name,
+            oldValues: { approval_status: 'pending' },
+            newValues: { approval_status: 'rejected', rejection_reason: reason },
+            status: 'success',
+        });
+        // Notify group creator
+        if (group.created_by) {
+            try {
+                await NotificationService_1.notificationService.sendNotification({
+                    userId: group.created_by,
+                    channels: ['in_app', 'email'],
+                    data: {
+                        churchId,
+                        type: 'general',
+                        title: '❌ Group Rejected',
+                        message: `Your group "${group.name}" has been rejected.`,
+                        actionUrl: `/groups/${groupId}`,
+                        metadata: {
+                            groupId,
+                            groupName: group.name,
+                            rejectedBy,
+                            reason,
+                        },
+                    },
+                    templateData: {
+                        reason,
+                    },
+                });
+            }
+            catch (error) {
+                logger_1.default.error('Failed to send group rejection notification:', error);
+            }
+        }
+        logger_1.default.info(`Group rejected: ${groupId} by ${rejectedBy}. Reason: ${reason}`);
+        return rejectedGroup;
+    }
+    // ============================================================================
+    // GROUP MEMBER APPROVAL METHODS
+    // ============================================================================
+    async approveGroupMember(churchId, groupId, memberId, approvedBy) {
+        const group = await this.groupRepository.findById(churchId, groupId);
+        if (!group) {
+            throw new AppError_1.AppError('Group not found', 404);
+        }
+        const member = await this.groupRepository.getMemberById(groupId, memberId);
+        if (!member) {
+            throw new AppError_1.AppError('Group member not found', 404);
+        }
+        if (member.approval_status !== 'pending') {
+            throw new AppError_1.AppError(`Member is already ${member.approval_status}`, 400);
+        }
+        const approvedMember = await this.groupRepository.approveGroupMember(groupId, memberId, approvedBy);
+        if (!approvedMember) {
+            throw new AppError_1.AppError('Failed to approve member', 500);
+        }
+        // Create audit log
+        await this.auditLogRepository.create({
+            churchId,
+            userId: approvedBy,
+            action: 'approve',
+            actionType: 'member',
+            description: `Approved ${member.member?.first_name} ${member.member?.last_name} to join ${group.name}`,
+            entityType: 'group_member',
+            entityId: member.id,
+            entityName: `${member.member?.first_name} ${member.member?.last_name}`,
+            metadata: {
+                groupId,
+                groupName: group.name,
+                memberId,
+            },
+            oldValues: { approval_status: 'pending' },
+            newValues: { approval_status: 'approved' },
+            status: 'success',
+        });
+        // Notify member
+        if (member.member?.email || member.invited_by) {
+            try {
+                await NotificationService_1.notificationService.sendNotification({
+                    userId: member.invited_by,
+                    email: member.member?.email,
+                    channels: ['in_app', 'email'],
+                    data: {
+                        churchId,
+                        type: 'general',
+                        title: '✅ Group Membership Approved',
+                        message: `${member.member?.first_name} has been approved to join ${group.name}`,
+                        actionUrl: `/groups/${groupId}`,
+                        metadata: {
+                            groupId,
+                            groupName: group.name,
+                            memberName: `${member.member?.first_name} ${member.member?.last_name}`,
+                        },
+                    },
+                });
+            }
+            catch (error) {
+                logger_1.default.error('Failed to send member approval notification:', error);
+            }
+        }
+        logger_1.default.info(`Group member approved: ${memberId} in group ${groupId} by ${approvedBy}`);
+        return approvedMember;
+    }
+    async rejectGroupMember(churchId, groupId, memberId, rejectedBy, reason) {
+        const group = await this.groupRepository.findById(churchId, groupId);
+        if (!group) {
+            throw new AppError_1.AppError('Group not found', 404);
+        }
+        const member = await this.groupRepository.getMemberById(groupId, memberId);
+        if (!member) {
+            throw new AppError_1.AppError('Group member not found', 404);
+        }
+        if (member.approval_status !== 'pending') {
+            throw new AppError_1.AppError(`Member is already ${member.approval_status}`, 400);
+        }
+        const rejectedMember = await this.groupRepository.rejectGroupMember(groupId, memberId, rejectedBy, reason);
+        if (!rejectedMember) {
+            throw new AppError_1.AppError('Failed to reject member', 500);
+        }
+        // Create audit log
+        await this.auditLogRepository.create({
+            churchId,
+            userId: rejectedBy,
+            action: 'reject',
+            actionType: 'member',
+            description: `Rejected ${member.member?.first_name} ${member.member?.last_name} from joining ${group.name}. Reason: ${reason}`,
+            entityType: 'group_member',
+            entityId: member.id,
+            entityName: `${member.member?.first_name} ${member.member?.last_name}`,
+            metadata: {
+                groupId,
+                groupName: group.name,
+                memberId,
+                reason,
+            },
+            oldValues: { approval_status: 'pending' },
+            newValues: { approval_status: 'rejected', rejection_reason: reason },
+            status: 'success',
+        });
+        // Notify the person who invited them
+        if (member.invited_by) {
+            try {
+                await NotificationService_1.notificationService.sendNotification({
+                    userId: member.invited_by,
+                    channels: ['in_app', 'email'],
+                    data: {
+                        churchId,
+                        type: 'general',
+                        title: '❌ Group Membership Rejected',
+                        message: `${member.member?.first_name}'s membership to ${group.name} was rejected.`,
+                        actionUrl: `/groups/${groupId}`,
+                        metadata: {
+                            groupId,
+                            groupName: group.name,
+                            memberName: `${member.member?.first_name} ${member.member?.last_name}`,
+                            reason,
+                        },
+                    },
+                    templateData: {
+                        reason,
+                    },
+                });
+            }
+            catch (error) {
+                logger_1.default.error('Failed to send member rejection notification:', error);
+            }
+        }
+        logger_1.default.info(`Group member rejected: ${memberId} in group ${groupId} by ${rejectedBy}. Reason: ${reason}`);
+        return rejectedMember;
+    }
+    async getPendingApprovals(churchId) {
+        return this.groupRepository.getAllPendingApprovals(churchId);
+    }
+    // Update create to notify pastors
+    async create(churchId, data, createdBy) {
+        const group = await this.groupRepository.create(churchId, data, createdBy);
+        // Create audit log
+        await this.auditLogRepository.create({
+            churchId,
+            userId: createdBy,
+            action: 'create',
+            actionType: 'member',
+            description: `Created new group/department: ${data.name} (pending approval)`,
+            entityType: 'group',
+            entityId: group.id,
+            entityName: data.name,
+            newValues: data,
+            status: 'success',
+        });
+        // Notify all pastors/admins
+        try {
+            await NotificationService_1.notificationService.notifyChurchAdmins({
+                churchId,
+                type: 'general',
+                title: '📋 New Group Awaiting Approval',
+                message: `A new group "${data.name}" has been created and requires approval.`,
+                actionUrl: `/admin/approvals/groups/${group.id}`,
+                metadata: {
+                    groupId: group.id,
+                    groupName: data.name,
+                    createdBy,
+                },
+            });
+        }
+        catch (error) {
+            logger_1.default.error('Failed to notify admins about new group:', error);
+        }
+        logger_1.default.info(`Group created (pending approval): ${group.id}`);
+        return group;
+    }
+    // Update addMember to notify pastors
+    async addMember(churchId, groupId, data, invitedBy) {
+        const group = await this.groupRepository.findById(churchId, groupId);
+        if (!group) {
+            throw new AppError_1.AppError('Group not found', 404);
+        }
+        const member = await this.groupRepository.addMember(groupId, data, invitedBy);
+        // Get member details
+        const memberDetails = await this.groupRepository.getMemberById(groupId, data.memberId);
+        const memberName = memberDetails?.member
+            ? `${memberDetails.member.first_name} ${memberDetails.member.last_name}`
+            : 'Unknown Member';
+        // Create audit log
+        await this.auditLogRepository.create({
+            churchId,
+            userId: invitedBy,
+            action: 'create',
+            actionType: 'member',
+            description: `Added ${memberName} to ${group.name} (pending approval)`,
+            entityType: 'group_member',
+            entityId: member.id,
+            entityName: memberName,
+            metadata: {
+                groupId,
+                groupName: group.name,
+                memberId: data.memberId,
+            },
+            newValues: data,
+            status: 'success',
+        });
+        // Notify pastors/admins
+        try {
+            await NotificationService_1.notificationService.notifyChurchAdmins({
+                churchId,
+                type: 'general',
+                title: '👤 New Group Member Awaiting Approval',
+                message: `${memberName} has been added to "${group.name}" and requires approval.`,
+                actionUrl: `/admin/approvals/group-members/${groupId}/${data.memberId}`,
+                metadata: {
+                    groupId,
+                    groupName: group.name,
+                    memberId: data.memberId,
+                    memberName,
+                    invitedBy,
+                },
+            });
+        }
+        catch (error) {
+            logger_1.default.error('Failed to notify admins about new group member:', error);
+        }
+        logger_1.default.info(`Member added to group (pending approval): ${data.memberId} in ${groupId}`);
+        return member;
     }
 }
 exports.GroupService = GroupService;

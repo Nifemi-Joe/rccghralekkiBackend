@@ -14,199 +14,173 @@ class WalletService {
         this.walletRepository = new WalletRepository_1.WalletRepository();
     }
     // ============================================================================
-    // WALLET
+    // ENHANCED BALANCE CHECKING - Checks both local wallet AND Termii account
     // ============================================================================
-    async getWallet(churchId) {
-        return this.walletRepository.getWallet(churchId);
-    }
-    async getBalance(churchId, channel) {
-        return this.walletRepository.getBalance(churchId, channel);
-    }
-    async getAllBalances(churchId) {
-        const wallet = await this.getWallet(churchId);
-        // Get Termii balance
-        let termiiBalance;
+    /**
+     * Get comprehensive balance info from all sources
+     */
+    async getComprehensiveBalance(churchId, channel = 'sms') {
         try {
-            const termii = (0, termii_1.getTermii)();
-            const balance = await termii.getBalance();
-            termiiBalance = {
-                balance: balance.balance || 0,
-                currency: balance.currency || 'NGN',
+            // Get local wallet balance
+            const localBalance = await this.walletRepository.getBalance(churchId, channel);
+            // Get Termii balance and pricing
+            let termiiInfo = null;
+            try {
+                const termii = (0, termii_1.getTermii)();
+                const termiiBalance = await termii.getBalance();
+                // Get SMS pricing (default to 4 NGN if not found)
+                const pricing = await this.walletRepository.getPricing(channel, 'NG');
+                const pricePerSms = pricing?.cost_per_unit || 4.0;
+                // Calculate how many SMS units the Termii balance can buy
+                const termiiBalanceAmount = parseFloat(termiiBalance?.balance || '0');
+                const smsUnitsAvailable = Math.floor(termiiBalanceAmount / pricePerSms);
+                termiiInfo = {
+                    balance: termiiBalanceAmount,
+                    currency: termiiBalance?.currency || 'NGN',
+                    smsUnitsAvailable,
+                    pricePerSms,
+                };
+                logger_1.default.info(`Termii balance: ${termiiBalanceAmount} ${termiiInfo.currency}, can send ${smsUnitsAvailable} SMS @ ${pricePerSms}/SMS`);
+            }
+            catch (error) {
+                logger_1.default.warn('Could not fetch Termii balance:', error);
+            }
+            // Calculate total available units
+            const termiiUnits = termiiInfo?.smsUnitsAvailable || 0;
+            const totalUnits = localBalance + termiiUnits;
+            // Determine source
+            let source = 'none';
+            if (localBalance > 0 && termiiUnits > 0) {
+                source = 'combined';
+            }
+            else if (localBalance > 0) {
+                source = 'local';
+            }
+            else if (termiiUnits > 0) {
+                source = 'termii';
+            }
+            return {
+                local: localBalance,
+                termii: termiiInfo,
+                total: totalUnits,
+                canSend: totalUnits > 0,
+                source,
             };
         }
         catch (error) {
-            logger_1.default.error('Error getting Termii balance:', error);
+            logger_1.default.error('Error getting comprehensive balance:', error);
+            throw error;
         }
-        return {
-            sms: wallet.sms_balance,
-            email: wallet.email_balance,
-            whatsapp: wallet.whatsapp_balance,
-            voice: wallet.voice_balance,
-            termii: termiiBalance,
-        };
     }
+    /**
+     * Check if there's sufficient balance from any source
+     */
+    async checkSufficientBalance(churchId, channel, unitsRequired) {
+        const balanceInfo = await this.getComprehensiveBalance(churchId, channel);
+        // First check local balance
+        if (balanceInfo.local >= unitsRequired) {
+            return { sufficient: true, balanceInfo, useTermii: false };
+        }
+        // Then check Termii balance
+        if (balanceInfo.termii && balanceInfo.termii.smsUnitsAvailable >= unitsRequired) {
+            return { sufficient: true, balanceInfo, useTermii: true };
+        }
+        // Check combined balance
+        if (balanceInfo.total >= unitsRequired) {
+            return { sufficient: true, balanceInfo, useTermii: true };
+        }
+        return { sufficient: false, balanceInfo, useTermii: false };
+    }
+    /**
+     * Get balance for a specific channel (backward compatible)
+     */
+    async getBalance(churchId, channel) {
+        return this.walletRepository.getBalance(churchId, channel);
+    }
+    /**
+     * Get full wallet info
+     */
+    async getWallet(churchId) {
+        return this.walletRepository.getWallet(churchId);
+    }
+    // ============================================================================
+    // CREDIT & DEBIT OPERATIONS
+    // ============================================================================
     async creditBalance(churchId, channel, units, details, createdBy) {
         return this.walletRepository.creditBalance(churchId, channel, units, details, createdBy);
     }
     async debitBalance(churchId, channel, units, details, createdBy) {
         return this.walletRepository.debitBalance(churchId, channel, units, details, createdBy);
     }
-    async checkSufficientBalance(churchId, channel, requiredUnits) {
-        const balance = await this.getBalance(churchId, channel);
-        return balance >= requiredUnits;
+    async refundTransaction(transactionId, refundAmount, reason, createdBy) {
+        return this.walletRepository.refundTransaction(transactionId, refundAmount, reason, createdBy);
     }
+    // ============================================================================
+    // TRANSACTIONS
+    // ============================================================================
     async getTransactions(churchId, filters) {
-        return this.walletRepository.getTransactions(churchId, filters || {});
+        return this.walletRepository.getTransactions(churchId, filters);
     }
     async getAnalytics(churchId, startDate, endDate) {
         return this.walletRepository.getAnalytics(churchId, startDate, endDate);
     }
-    async refundTransaction(transactionId, refundAmount, reason, createdBy) {
-        return this.walletRepository.refundTransaction(transactionId, refundAmount, reason, createdBy);
-    }
-    // Pricing methods
+    // ============================================================================
+    // PRICING
+    // ============================================================================
     async getAllPricing() {
         return this.walletRepository.getAllPricing();
     }
     async getPricing(channel, countryCode = 'NG') {
-        const pricing = await this.walletRepository.getPricing(channel, countryCode);
-        if (!pricing) {
-            throw new AppError_1.AppError(`Pricing not found for ${channel} in ${countryCode}`, 404);
-        }
-        return pricing;
+        return this.walletRepository.getPricing(channel, countryCode);
     }
-    async updatePricing(pricingId, data) {
-        const updated = await this.walletRepository.updatePricing(pricingId, data);
-        if (!updated) {
-            throw new AppError_1.AppError('Failed to update pricing', 500);
-        }
-        return updated;
+    async updatePricing(id, data) {
+        return this.walletRepository.updatePricing(id, data);
     }
     async createPricing(data) {
         return this.walletRepository.createPricing(data);
     }
-    // Package methods
+    // ============================================================================
+    // PACKAGES
+    // ============================================================================
     async getAllPackages(channel) {
         return this.walletRepository.getAllPackages(channel);
     }
     async getPackageById(id) {
-        const pkg = await this.walletRepository.getPackageById(id);
-        if (!pkg) {
-            throw new AppError_1.AppError('Package not found', 404);
-        }
-        return pkg;
+        return this.walletRepository.getPackageById(id);
     }
     async createPackage(data) {
         return this.walletRepository.createPackage(data);
     }
     async updatePackage(id, data) {
-        const updated = await this.walletRepository.updatePackage(id, data);
-        if (!updated) {
-            throw new AppError_1.AppError('Failed to update package', 500);
-        }
-        return updated;
+        return this.walletRepository.updatePackage(id, data);
     }
     async deletePackage(id) {
-        const deleted = await this.walletRepository.deletePackage(id);
-        if (!deleted) {
+        return this.walletRepository.deletePackage(id);
+    }
+    // ============================================================================
+    // PURCHASE UNITS
+    // ============================================================================
+    async purchaseUnits(churchId, packageId, paymentDetails, createdBy) {
+        const pkg = await this.walletRepository.getPackageById(packageId);
+        if (!pkg) {
             throw new AppError_1.AppError('Package not found', 404);
         }
-    }
-    async purchaseUnits(churchId, data, userId) {
-        try {
-            let units = data.units || 0;
-            let bonusUnits = 0;
-            // If package ID provided, get package details
-            if (data.packageId) {
-                const pkg = await this.walletRepository.getPackageById(data.packageId);
-                if (!pkg) {
-                    throw new AppError_1.AppError('Package not found', 404);
-                }
-                if (!pkg.is_active) {
-                    throw new AppError_1.AppError('Package is no longer available', 400);
-                }
-                units = pkg.units;
-                bonusUnits = pkg.bonus_units;
-            }
-            const totalUnits = units + bonusUnits;
-            // Credit the wallet
-            const wallet = await this.walletRepository.creditBalance(churchId, data.channel, units, {
-                amount: data.amount,
-                reference: data.paymentReference,
-                description: `Purchased ${units} ${data.channel.toUpperCase()} units`,
-                paymentMethod: data.paymentMethod,
-                paymentReference: data.paymentReference,
-                type: 'credit',
-                status: 'completed',
-            }, userId);
-            // If there are bonus units, add them separately
-            if (bonusUnits > 0) {
-                await this.walletRepository.creditBalance(churchId, data.channel, bonusUnits, {
-                    reference: `BONUS-${data.paymentReference}`,
-                    description: `Bonus units for purchase ${data.paymentReference}`,
-                    type: 'bonus',
-                    status: 'completed',
-                }, userId);
-            }
-            logger_1.default.info(`Purchased ${totalUnits} ${data.channel} units for church ${churchId}`);
-            return wallet;
+        if (!pkg.is_active) {
+            throw new AppError_1.AppError('Package is no longer available', 400);
         }
-        catch (error) {
-            logger_1.default.error('Error purchasing units:', error);
-            throw error;
-        }
-    }
-    async deductUnits(churchId, channel, units, reference, description, userId) {
-        const balance = await this.getBalance(churchId, channel);
-        if (balance < units) {
-            throw new AppError_1.AppError(`Insufficient ${channel} balance. Required: ${units}, Available: ${balance}`, 400);
-        }
-        return this.walletRepository.debitBalance(churchId, channel, units, { reference, description }, userId);
-    }
-    async exportTransactions(churchId, filters) {
-        const { data } = await this.walletRepository.getTransactions(churchId, {
-            ...filters,
-            page: 1,
-            limit: 10000, // Export all
-        });
-        // Create CSV
-        const headers = ['Date', 'Type', 'Channel', 'Reference', 'Units', 'Amount', 'Balance After', 'Status', 'Description'];
-        const rows = data.map(tx => [
-            new Date(tx.created_at).toISOString(),
-            tx.type,
-            tx.channel,
-            tx.reference || '',
-            tx.units.toString(),
-            tx.amount?.toString() || '',
-            tx.balance_after.toString(),
-            tx.status,
-            tx.description || '',
-        ]);
-        const csv = [
-            headers.join(','),
-            ...rows.map(row => row.map(cell => `"${cell}"`).join(','))
-        ].join('\n');
-        return csv;
-    }
-    // ============================================================================
-    // ANALYTICS
-    // ============================================================================
-    async getUsageAnalytics(churchId, startDate, endDate) {
-        const analytics = await this.walletRepository.getAnalytics(churchId, startDate, endDate);
-        const wallet = await this.getWallet(churchId);
-        return {
-            totalRevenue: parseFloat(analytics.total_revenue) || 0,
-            totalRefunds: parseFloat(analytics.total_refunds) || 0,
-            totalPurchases: parseInt(analytics.total_purchases) || 0,
-            totalUnitsDistributed: parseInt(analytics.total_units_distributed) || 0,
-            balances: {
-                sms: wallet.sms_balance,
-                email: wallet.email_balance,
-                whatsapp: wallet.whatsapp_balance,
-                voice: wallet.voice_balance,
-            },
-            byChannel: analytics.byChannel,
-        };
+        const totalUnits = pkg.units + (pkg.bonus_units || 0);
+        const channel = pkg.channel;
+        const wallet = await this.creditBalance(churchId, channel === 'combo' ? 'all' : channel, totalUnits, {
+            amount: paymentDetails.amount,
+            reference: `PKG-${pkg.id}-${Date.now()}`,
+            description: `Purchased ${pkg.name}: ${pkg.units} units + ${pkg.bonus_units || 0} bonus`,
+            paymentMethod: paymentDetails.paymentMethod,
+            paymentReference: paymentDetails.paymentReference,
+            type: 'credit',
+        }, createdBy);
+        // Get the latest transaction
+        const { data: transactions } = await this.walletRepository.getTransactions(churchId, { limit: 1 });
+        return { wallet, transaction: transactions[0] };
     }
 }
 exports.WalletService = WalletService;

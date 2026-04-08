@@ -10,6 +10,13 @@ export class GroupController {
 
     constructor() {
         this.groupService = new GroupService();
+
+        // ── Explicitly bind every approval method in the constructor ──
+        this.getPendingApprovals = this.getPendingApprovals.bind(this);
+        this.approveGroup = this.approveGroup.bind(this);
+        this.rejectGroup = this.rejectGroup.bind(this);
+        this.approveGroupMember = this.approveGroupMember.bind(this);
+        this.rejectGroupMember = this.rejectGroupMember.bind(this);
     }
 
     // ============================================================================
@@ -33,7 +40,12 @@ export class GroupController {
                 churchId,
                 search: req.query.search as string,
                 typeId: req.query.typeId as string,
-                isActive: req.query.isActive === 'true' ? true : req.query.isActive === 'false' ? false : undefined,
+                isActive:
+                    req.query.isActive === 'true'
+                        ? true
+                        : req.query.isActive === 'false'
+                            ? false
+                            : undefined,
                 leaderId: req.query.leaderId as string,
                 page: parseInt(req.query.page as string) || 1,
                 limit: parseInt(req.query.limit as string) || 20,
@@ -92,7 +104,12 @@ export class GroupController {
     addMember = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const churchId = req.user!.churchId;
-            const membership = await this.groupService.addMember(churchId, req.params.id, req.body, req.user?.id);
+            const membership = await this.groupService.addMember(
+                churchId,
+                req.params.id,
+                req.body,
+                req.user?.id
+            );
             successResponse(res, membership, 'Member added to group successfully', 201);
         } catch (error) {
             next(error);
@@ -113,7 +130,12 @@ export class GroupController {
         try {
             const churchId = req.user!.churchId;
             const { role } = req.body;
-            const member = await this.groupService.updateMemberRole(churchId, req.params.id, req.params.memberId, role);
+            const member = await this.groupService.updateMemberRole(
+                churchId,
+                req.params.id,
+                req.params.memberId,
+                role
+            );
             successResponse(res, member, 'Member role updated successfully');
         } catch (error) {
             next(error);
@@ -171,7 +193,11 @@ export class GroupController {
                 upcoming: req.query.upcoming === 'true',
                 limit: req.query.limit ? parseInt(req.query.limit as string) : undefined,
             };
-            const meetings = await this.groupService.getGroupMeetings(churchId, req.params.id, options);
+            const meetings = await this.groupService.getGroupMeetings(
+                churchId,
+                req.params.id,
+                options
+            );
             successResponse(res, meetings, 'Group meetings retrieved successfully');
         } catch (error) {
             next(error);
@@ -196,7 +222,11 @@ export class GroupController {
     updateMeeting = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const churchId = req.user!.churchId;
-            const meeting = await this.groupService.updateMeeting(req.params.meetingId, churchId, req.body);
+            const meeting = await this.groupService.updateMeeting(
+                req.params.meetingId,
+                churchId,
+                req.body
+            );
             successResponse(res, meeting, 'Meeting updated successfully');
         } catch (error) {
             next(error);
@@ -207,7 +237,11 @@ export class GroupController {
         try {
             const churchId = req.user!.churchId;
             const { reason } = req.body;
-            const meeting = await this.groupService.cancelMeeting(req.params.meetingId, churchId, reason);
+            const meeting = await this.groupService.cancelMeeting(
+                req.params.meetingId,
+                churchId,
+                reason
+            );
             successResponse(res, meeting, 'Meeting cancelled successfully');
         } catch (error) {
             next(error);
@@ -227,7 +261,11 @@ export class GroupController {
     shareMeeting = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const churchId = req.user!.churchId;
-            const result = await this.groupService.shareMeeting(req.params.meetingId, churchId, req.body);
+            const result = await this.groupService.shareMeeting(
+                req.params.meetingId,
+                churchId,
+                req.body
+            );
             successResponse(res, result, 'Meeting shared successfully');
         } catch (error) {
             next(error);
@@ -242,7 +280,13 @@ export class GroupController {
         try {
             const churchId = req.user!.churchId;
             const { name, description, icon, color } = req.body;
-            const groupType = await this.groupService.createGroupType(churchId, name, description, icon, color);
+            const groupType = await this.groupService.createGroupType(
+                churchId,
+                name,
+                description,
+                icon,
+                color
+            );
             successResponse(res, groupType, 'Group type created successfully', 201);
         } catch (error) {
             next(error);
@@ -262,7 +306,11 @@ export class GroupController {
     updateGroupType = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const churchId = req.user!.churchId;
-            const groupType = await this.groupService.updateGroupType(churchId, req.params.typeId, req.body);
+            const groupType = await this.groupService.updateGroupType(
+                churchId,
+                req.params.typeId,
+                req.body
+            );
             successResponse(res, groupType, 'Group type updated successfully');
         } catch (error) {
             next(error);
@@ -278,4 +326,96 @@ export class GroupController {
             next(error);
         }
     };
+
+    // ============================================================================
+    // APPROVAL ENDPOINTS
+    // ============================================================================
+
+    async getPendingApprovals(req: Request, res: Response, next: NextFunction): Promise<void> {
+        try {
+            const churchId = req.user!.churchId;
+            const result = await this.groupService.getPendingApprovals(churchId);
+            successResponse(res, result, 'Pending approvals retrieved successfully');
+        } catch (error) {
+            next(error);
+        }
+    }
+
+    async approveGroup(req: Request, res: Response, next: NextFunction): Promise<void> {
+        try {
+            const { groupId } = req.params;
+            const churchId = req.user!.churchId;
+            const approvedBy = req.user!.id;
+
+            const group = await this.groupService.approveGroup(churchId, groupId, approvedBy);
+            successResponse(res, group, 'Group approved successfully');
+        } catch (error) {
+            next(error);
+        }
+    }
+
+    async rejectGroup(req: Request, res: Response, next: NextFunction): Promise<void> {
+        try {
+            const { groupId } = req.params;
+            const { reason } = req.body;
+            const churchId = req.user!.churchId;
+            const rejectedBy = req.user!.id;
+
+            if (!reason || reason.trim().length === 0) {
+                throw new AppError('Rejection reason is required', 400);
+            }
+
+            const group = await this.groupService.rejectGroup(
+                churchId,
+                groupId,
+                rejectedBy,
+                reason
+            );
+            successResponse(res, group, 'Group rejected');
+        } catch (error) {
+            next(error);
+        }
+    }
+
+    async approveGroupMember(req: Request, res: Response, next: NextFunction): Promise<void> {
+        try {
+            const { groupId, memberId } = req.params;
+            const churchId = req.user!.churchId;
+            const approvedBy = req.user!.id;
+
+            const member = await this.groupService.approveGroupMember(
+                churchId,
+                groupId,
+                memberId,
+                approvedBy
+            );
+            successResponse(res, member, 'Group member approved successfully');
+        } catch (error) {
+            next(error);
+        }
+    }
+
+    async rejectGroupMember(req: Request, res: Response, next: NextFunction): Promise<void> {
+        try {
+            const { groupId, memberId } = req.params;
+            const { reason } = req.body;
+            const churchId = req.user!.churchId;
+            const rejectedBy = req.user!.id;
+
+            if (!reason || reason.trim().length === 0) {
+                throw new AppError('Rejection reason is required', 400);
+            }
+
+            const member = await this.groupService.rejectGroupMember(
+                churchId,
+                groupId,
+                memberId,
+                rejectedBy,
+                reason
+            );
+            successResponse(res, member, 'Group member rejected');
+        } catch (error) {
+            next(error);
+        }
+    }
 }

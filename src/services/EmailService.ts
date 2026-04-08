@@ -2113,6 +2113,138 @@ ${data.churchName} Team
         return result.success;
     }
 
+    async sendGroupApprovalNotification(
+        email: string,
+        data: {
+            firstName: string;
+            groupName: string;
+            churchName: string;
+            actionUrl?: string;
+        }
+    ): Promise<boolean> {
+        const result = await this.sendEmail({
+            to: email,
+            subject: `✅ Group Approved - ${data.groupName}`,
+            html: `
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <meta charset="utf-8">
+                <title>Group Approved</title>
+            </head>
+            <body style="margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f5f5f5;">
+                <table width="100%" cellpadding="0" cellspacing="0">
+                    <tr>
+                        <td align="center" style="padding: 20px;">
+                            <table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                                <tr>
+                                    <td style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); padding: 40px; text-align: center; border-radius: 8px 8px 0 0;">
+                                        <h1 style="margin: 0; color: #ffffff; font-size: 28px;">✅ Group Approved!</h1>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 40px;">
+                                        <p style="margin: 0 0 20px; font-size: 16px;">Dear ${data.firstName},</p>
+                                        <p style="margin: 0 0 20px; font-size: 16px;">
+                                            Great news! Your group <strong>"${data.groupName}"</strong> has been approved and is now active.
+                                        </p>
+                                        <div style="background: #d1fae5; border-left: 4px solid #10b981; padding: 15px; margin: 20px 0; border-radius: 4px;">
+                                            <p style="margin: 0; color: #065f46; font-size: 14px;">
+                                                <strong>✅ Your group is now live!</strong> Members can join and you can start organizing meetings and activities.
+                                            </p>
+                                        </div>
+                                        ${data.actionUrl ? `
+                                            <table width="100%" cellpadding="0" cellspacing="0" style="margin: 30px 0;">
+                                                <tr>
+                                                    <td align="center">
+                                                        <a href="${data.actionUrl}" style="display: inline-block; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: #ffffff; text-decoration: none; padding: 14px 40px; border-radius: 8px; font-size: 16px; font-weight: 600;">
+                                                            View Group →
+                                                        </a>
+                                                    </td>
+                                                </tr>
+                                            </table>
+                                        ` : ''}
+                                        <p style="margin: 30px 0 0; font-size: 14px; color: #666;">
+                                            Blessings,<br><strong>${data.churchName}</strong>
+                                        </p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                </table>
+            </body>
+            </html>
+        `,
+            text: `Dear ${data.firstName},\n\nGreat news! Your group "${data.groupName}" has been approved and is now active.\n\nBlessings,\n${data.churchName}`
+        });
+
+        return result.success;
+    }
+
+    /**
+     * Send Group Rejection Notification
+     */
+    async sendGroupRejectionNotification(
+        email: string,
+        data: {
+            firstName: string;
+            groupName: string;
+            reason: string;
+            churchName: string;
+        }
+    ): Promise<boolean> {
+        const result = await this.sendEmail({
+            to: email,
+            subject: `Group Request - ${data.groupName}`,
+            html: `
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <meta charset="utf-8">
+                <title>Group Request Update</title>
+            </head>
+            <body style="margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f5f5f5;">
+                <table width="100%" cellpadding="0" cellspacing="0">
+                    <tr>
+                        <td align="center" style="padding: 20px;">
+                            <table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                                <tr>
+                                    <td style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); padding: 40px; text-align: center; border-radius: 8px 8px 0 0;">
+                                        <h1 style="margin: 0; color: #ffffff; font-size: 28px;">Group Request Update</h1>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 40px;">
+                                        <p style="margin: 0 0 20px; font-size: 16px;">Dear ${data.firstName},</p>
+                                        <p style="margin: 0 0 20px; font-size: 16px;">
+                                            Thank you for your request to create the group <strong>"${data.groupName}"</strong>.
+                                        </p>
+                                        <div style="background: #fef2f2; border-left: 4px solid #ef4444; padding: 15px; margin: 20px 0; border-radius: 4px;">
+                                            <p style="margin: 0 0 10px; color: #991b1b; font-weight: 600;">Feedback:</p>
+                                            <p style="margin: 0; color: #991b1b; font-size: 14px;">${data.reason}</p>
+                                        </div>
+                                        <p style="margin: 20px 0 0; font-size: 14px; color: #666;">
+                                            Please feel free to contact your church administrator if you have any questions or would like to discuss this further.
+                                        </p>
+                                        <p style="margin: 30px 0 0; font-size: 14px; color: #666;">
+                                            God bless,<br><strong>${data.churchName}</strong>
+                                        </p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                </table>
+            </body>
+            </html>
+        `,
+            text: `Dear ${data.firstName},\n\nThank you for your request to create "${data.groupName}".\n\nFeedback: ${data.reason}\n\nGod bless,\n${data.churchName}`
+        });
+
+        return result.success;
+    }
+
     /**
      * Helper: Get Role Display Name
      */
